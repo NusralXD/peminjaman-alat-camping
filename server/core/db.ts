@@ -3,13 +3,24 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
+/**
+ * Konfigurasi Database SQLite
+ * File ini bertanggung jawab untuk:
+ * 1. Membuat koneksi ke database camping.db
+ * 2. Membuat tabel-tabel (Schema) jika belum ada
+ * 3. Melakukan migrasi (menambah kolom baru jika ada update)
+ * 4. Mengisi data awal (seeding) seperti kategori dan voucher
+ */
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Inisialisasi Database
 const db = new Database(path.join(__dirname, 'camping.db'));
 
-// Initialize tables
+// Inisialisasi Tabel-Tabel (Schema)
 db.exec(`
+  -- Tabel Users: Menyimpan data akun pengguna (Admin, Petugas, Peminjam)
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,

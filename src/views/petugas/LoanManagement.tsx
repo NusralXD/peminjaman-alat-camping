@@ -7,18 +7,26 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
+/**
+ * Komponen Manajemen Peminjaman (Petugas/Admin)
+ * Berfungsi untuk mengelola status peminjaman alat dari 'pending' hingga 'kembali'.
+ */
 export default function LoanManagement({ user }: { user: any }) {
-  const [loans, setLoans] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLoan, setSelectedLoan] = useState<any>(null);
-  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [loans, setLoans] = useState<any[]>([]); // Daftar semua peminjaman
+  const [loading, setLoading] = useState(true); // Status loading saat fetch data
+  const [filter, setFilter] = useState('all'); // Filter berdasarkan status (pending, disetujui, dll)
+  const [searchTerm, setSearchTerm] = useState(''); // Filter pencarian nama peminjam/alat
+  const [selectedLoan, setSelectedLoan] = useState<any>(null); // Data peminjaman yang sedang dipilih untuk detail
+  const [showPrintModal, setShowPrintModal] = useState(false); // Modal cetak laporan
 
+  // Mengambil data peminjaman saat komponen dimuat
   useEffect(() => {
     fetchLoans();
   }, []);
 
+  /**
+   * Fungsi untuk mengambil data peminjaman dari API
+   */
   const fetchLoans = async () => {
     try {
       const data = await api.getLoans();
@@ -30,23 +38,41 @@ export default function LoanManagement({ user }: { user: any }) {
     }
   };
 
+  /**
+   * Fungsi untuk mengubah status peminjaman (Setujui, Tolak, Kirim, dll)
+   * Alur status: pending -> disetujui -> dikirim -> diterima -> kembali
+   * - pending: Menunggu konfirmasi petugas
+   * - disetujui: Petugas menyetujui peminjaman
+   * - dikirim: Alat sedang dalam perjalanan ke peminjam (Stok alat akan berkurang di server)
+   * - diterima: Peminjam sudah menerima alat
+   * - kembali: Alat sudah dikembalikan ke toko (Stok alat akan bertambah kembali)
+   */
   const updateStatus = async (id: number, status: string) => {
     try {
       const res = await api.updateLoanStatus(id, status);
       if (res.ok) {
-        fetchLoans();
+        fetchLoans(); // Refresh data setelah update status berhasil
       }
     } catch (err) {
       alert('Gagal update status');
     }
   };
 
+  /**
+   * Fungsi untuk memproses pengembalian alat (Return)
+   * Logika:
+   * 1. Mengambil tanggal hari ini sebagai tanggal realisasi kembali.
+   * 2. Menghitung selisih hari antara tanggal seharusnya kembali dengan tanggal realisasi.
+   * 3. Jika terlambat, denda dihitung: (Hari Terlambat * 50% Harga Sewa Per Hari * Jumlah Alat).
+   * 4. Memperbarui status di database menjadi 'kembali'.
+   */
   const handleReturn = async (id: number) => {
     const tgl_realisasi_kembali = new Date().toISOString().split('T')[0];
     try {
       const res = await api.processReturn(id, { tgl_realisasi_kembali });
       if (res.ok) {
         const result = await res.json();
+        // Menampilkan ringkasan pembayaran dan denda kepada petugas
         alert(`Pengembalian berhasil!\nTotal Bayar: Rp ${result.total.toLocaleString()}\nDenda: Rp ${result.denda.toLocaleString()}`);
         fetchLoans();
       }

@@ -1,10 +1,16 @@
 import express from 'express';
 import db from './db.ts';
 import { authenticateToken, authorizeRole, logActivity } from './auth.ts';
+import { getLogs as getFileLogs } from './logger.ts';
 
 const router = express.Router();
 
-// --- ALAT ---
+/**
+ * --- ALAT (EQUIPMENT) ---
+ * Bagian ini menangani data alat camping (tenda, tas, dll)
+ */
+
+// Mengambil semua data alat beserta nama kategorinya
 router.get('/alat', (req, res) => {
   const alat = db.prepare(`
     SELECT alat.*, kategori.nama_kategori 
@@ -14,6 +20,7 @@ router.get('/alat', (req, res) => {
   res.json(alat);
 });
 
+// Mengambil detail alat berdasarkan ID
 router.get('/alat/:id', (req, res) => {
   const alat = db.prepare(`
     SELECT alat.*, kategori.nama_kategori 
@@ -25,6 +32,7 @@ router.get('/alat/:id', (req, res) => {
   res.json(alat);
 });
 
+// Menambah alat baru (Hanya Admin)
 router.post('/alat', authenticateToken, authorizeRole(['admin']), (req: any, res) => {
   const { nama_alat, kategori_id, harga_per_hari, stok, gambar_url, deskripsi, kondisi } = req.body;
   const stmt = db.prepare('INSERT INTO alat (nama_alat, kategori_id, harga_per_hari, stok, gambar_url, deskripsi, kondisi) VALUES (?, ?, ?, ?, ?, ?, ?)');
@@ -33,6 +41,7 @@ router.post('/alat', authenticateToken, authorizeRole(['admin']), (req: any, res
   res.json({ id: result.lastInsertRowid });
 });
 
+// Mengupdate data alat (Hanya Admin)
 router.put('/alat/:id', authenticateToken, authorizeRole(['admin']), (req: any, res) => {
   const { nama_alat, kategori_id, harga_per_hari, stok, gambar_url, deskripsi, kondisi } = req.body;
   const stmt = db.prepare('UPDATE alat SET nama_alat=?, kategori_id=?, harga_per_hari=?, stok=?, gambar_url=?, deskripsi=?, kondisi=? WHERE id=?');
@@ -41,19 +50,29 @@ router.put('/alat/:id', authenticateToken, authorizeRole(['admin']), (req: any, 
   res.json({ message: 'Updated' });
 });
 
-router.delete('/alat/:id', authenticateToken, authorizeRole(['admin']), (req: any, res) => {
+// Menghapus alat (Hanya Admin)
+router.post('/alat/:id/delete', authenticateToken, authorizeRole(['admin']), (req: any, res) => {
   db.prepare('DELETE FROM alat WHERE id=?').run(req.params.id);
   logActivity(req.user.id, 'Hapus Alat', `Hapus alat ID: ${req.params.id}`);
   res.json({ message: 'Deleted' });
 });
 
-// --- KATEGORI ---
+/**
+ * --- KATEGORI ---
+ */
+
+// Mengambil daftar kategori alat
 router.get('/kategori', (req, res) => {
   const categories = db.prepare('SELECT * FROM kategori').all();
   res.json(categories);
 });
 
-// --- PEMINJAMAN ---
+/**
+ * --- PEMINJAMAN (LOANS) ---
+ * Bagian ini menangani transaksi sewa alat
+ */
+
+// Mengambil data peminjaman (Peminjam hanya melihat miliknya, Admin/Petugas melihat semua)
 router.get('/peminjaman', authenticateToken, (req: any, res) => {
   let query = `
     SELECT p.*, u.nama_lengkap as peminjam, a.nama_alat, a.harga_per_hari, a.gambar_url, a.deskripsi
@@ -72,10 +91,10 @@ router.get('/peminjaman', authenticateToken, (req: any, res) => {
   res.json(data);
 });
 
+// Mengajukan peminjaman baru (Hanya Peminjam)
 router.post('/peminjaman', authenticateToken, authorizeRole(['peminjam']), (req: any, res) => {
   const { alat_id, tgl_pinjam, tgl_kembali, jumlah_alat } = req.body;
   
-  // Get alat details
   const alat: any = db.prepare('SELECT harga_per_hari, stok FROM alat WHERE id = ?').get(alat_id);
   if (!alat) return res.status(404).json({ message: 'Alat tidak ditemukan' });
   if (alat.stok < (jumlah_alat || 1)) return res.status(400).json({ message: 'Stok tidak mencukupi' });
@@ -93,8 +112,9 @@ router.post('/peminjaman', authenticateToken, authorizeRole(['peminjam']), (req:
   res.json({ id: result.lastInsertRowid });
 });
 
+// Mengupdate status peminjaman (Disetujui, Dikirim, dll - Hanya Petugas/Admin)
 router.patch('/peminjaman/:id/status', authenticateToken, authorizeRole(['petugas', 'admin']), (req: any, res) => {
-  const { status } = req.body; // disetujui, ditolak, dikirim, kembali
+  const { status } = req.body;
   
   const current: any = db.prepare('SELECT status, alat_id, jumlah_alat FROM peminjaman WHERE id = ?').get(req.params.id);
   if (!current) return res.status(404).json({ message: 'Data tidak ditemukan' });
@@ -102,7 +122,7 @@ router.patch('/peminjaman/:id/status', authenticateToken, authorizeRole(['petuga
   const stmt = db.prepare('UPDATE peminjaman SET status = ?, petugas_id = ? WHERE id = ?');
   stmt.run(status, req.user.id, req.params.id);
 
-  // Stock logic: Reduce when 'dikirim', restore when 'kembali'
+  // Logika stok: Berkurang saat dikirim, bertambah saat kembali
   if (status === 'dikirim' && current.status !== 'dikirim') {
     db.prepare('UPDATE alat SET stok = stok - ? WHERE id = ?').run(current.jumlah_alat, current.alat_id);
   } else if (status === 'kembali' && (current.status === 'dikirim' || current.status === 'diterima')) {
@@ -350,12 +370,8 @@ router.post('/keranjang/checkout', authenticateToken, (req: any, res) => {
 
 // --- LOGS ---
 router.get('/logs', authenticateToken, authorizeRole(['admin']), (req, res) => {
-  const logs = db.prepare(`
-    SELECT l.*, u.username 
-    FROM log_aktivitas l 
-    LEFT JOIN users u ON l.user_id = u.id 
-    ORDER BY l.created_at DESC
-  `).all();
+  // Mengambil log dari file activity.log, bukan dari database
+  const logs = getFileLogs();
   res.json(logs);
 });
 

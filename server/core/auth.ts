@@ -2,23 +2,30 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import db from './db.ts';
+import { logActivity as fileLog } from './logger.ts';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
-// Middleware to verify JWT
+/**
+ * Middleware untuk memverifikasi token JWT dari cookie.
+ * Berfungsi untuk memastikan pengguna sudah login sebelum mengakses fitur tertentu.
+ */
 export const authenticateToken = (req: any, res: any, next: any) => {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) return res.status(403).json({ message: 'Forbidden' });
-    req.user = user;
+    req.user = user; // Menyimpan data user yang terdekripsi ke objek request
     next();
   });
 };
 
-// Middleware for Role-based Access Control
+/**
+ * Middleware untuk otorisasi berdasarkan role (admin, petugas, peminjam).
+ * Membatasi akses halaman/API hanya untuk role tertentu.
+ */
 export const authorizeRole = (roles: string[]) => {
   return (req: any, res: any, next: any) => {
     if (!req.user || !roles.includes(req.user.role)) {
@@ -28,16 +35,22 @@ export const authorizeRole = (roles: string[]) => {
   };
 };
 
-// Helper for logging
-export const logActivity = (userId: number | null, aktivitas: string, keterangan: string = '') => {
+/**
+ * Fungsi Helper untuk mencatat aktivitas.
+ * Sekarang menggunakan sistem log berbasis file (logger.ts) tanpa database.
+ */
+export const logActivity = (userId: number | string | null, aktivitas: string, keterangan: string = '') => {
   try {
-    const stmt = db.prepare('INSERT INTO log_aktivitas (user_id, aktivitas, keterangan) VALUES (?, ?, ?)');
-    stmt.run(userId, aktivitas, keterangan);
+    // Mencatat ke file activity.log melalui logger.ts
+    fileLog(userId ? userId.toString() : 'System', aktivitas, keterangan);
   } catch (err) {
     console.error('Logging error:', err);
   }
 };
 
+/**
+ * Endpoint Login: Memverifikasi username & password, lalu memberikan token JWT.
+ */
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {

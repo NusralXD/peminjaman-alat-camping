@@ -4,15 +4,23 @@ import { History, Search, User, Clock, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { api } from '../../core/api';
 
+/**
+ * Komponen Log Aktivitas (Admin)
+ * Menampilkan riwayat aktivitas yang dilakukan oleh pengguna di dalam sistem.
+ */
 export default function ActivityLogs({ user }: { user: any }) {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [logs, setLogs] = useState<any[]>([]); // Daftar semua log aktivitas
+  const [loading, setLoading] = useState(true); // Status loading data
+  const [searchTerm, setSearchTerm] = useState(''); // Filter pencarian log
 
+  // Mengambil data log saat komponen dimuat
   useEffect(() => {
     fetchLogs();
   }, []);
 
+  /**
+   * Fungsi untuk mengambil data log dari API
+   */
   const fetchLogs = async () => {
     try {
       const data = await api.getLogs();
@@ -24,6 +32,7 @@ export default function ActivityLogs({ user }: { user: any }) {
     }
   };
 
+  // Filter log berdasarkan username, jenis aktivitas, atau keterangan
   const filteredLogs = logs.filter(log => 
     log.username?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     log.aktivitas.toLowerCase().includes(searchTerm.toLowerCase()) ||

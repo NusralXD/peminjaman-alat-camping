@@ -4,12 +4,18 @@ import { Users, UserPlus, Search, Trash2, Edit3, Shield, Mail, Calendar, User as
 import { format } from 'date-fns';
 import { api } from '../../core/api';
 
+/**
+ * Komponen Manajemen User (Admin)
+ * Berfungsi untuk mengelola data pengguna, hak akses (role), dan informasi profil.
+ */
 export default function UserManagement({ user }: { user: any }) {
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
+  const [users, setUsers] = useState<any[]>([]); // Daftar semua user
+  const [loading, setLoading] = useState(true); // Status loading data
+  const [searchTerm, setSearchTerm] = useState(''); // Filter pencarian user
+  const [showModal, setShowModal] = useState(false); // Status modal tambah/edit
+  const [editingUser, setEditingUser] = useState<any>(null); // Data user yang sedang diedit
+  
+  // State untuk form input user
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -22,10 +28,14 @@ export default function UserManagement({ user }: { user: any }) {
     postal_code: ''
   });
 
+  // Mengambil data user saat komponen dimuat
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  /**
+   * Fungsi untuk mengambil daftar user dari API
+   */
   const fetchUsers = async () => {
     try {
       const data = await api.getUsers();
@@ -37,12 +47,16 @@ export default function UserManagement({ user }: { user: any }) {
     }
   };
 
+  /**
+   * Fungsi untuk membuka modal (Tambah atau Edit)
+   * @param item Data user jika ingin mengedit, null jika ingin menambah baru
+   */
   const handleOpenModal = (item: any = null) => {
     if (item) {
       setEditingUser(item);
       setFormData({
         username: item.username,
-        password: '', // Don't show password
+        password: '', // Password tidak ditampilkan demi keamanan
         nama_lengkap: item.nama_lengkap,
         role: item.role,
         email: item.email || '',
@@ -68,6 +82,9 @@ export default function UserManagement({ user }: { user: any }) {
     setShowModal(true);
   };
 
+  /**
+   * Fungsi untuk menyimpan data user (Register baru atau Update)
+   */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -80,7 +97,7 @@ export default function UserManagement({ user }: { user: any }) {
 
       if (res.ok) {
         setShowModal(false);
-        fetchUsers();
+        fetchUsers(); // Refresh data setelah simpan
       } else {
         const data = await res.json();
         alert(data.error || 'Gagal menyimpan data');
@@ -90,6 +107,9 @@ export default function UserManagement({ user }: { user: any }) {
     }
   };
 
+  /**
+   * Fungsi untuk menghapus user berdasarkan ID
+   */
   const handleDelete = async (id: number) => {
     if (!confirm('Apakah Anda yakin ingin menghapus user ini?')) return;
     try {
@@ -100,6 +120,7 @@ export default function UserManagement({ user }: { user: any }) {
     }
   };
 
+  // Filter user berdasarkan input pencarian (Username atau Nama Lengkap)
   const filteredUsers = users.filter(u => 
     u.username.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase())

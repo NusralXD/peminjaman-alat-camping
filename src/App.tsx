@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
+
+// Import semua halaman (views) aplikasi
 import Home from './views/user/Home';
 import Login from './views/shared/Login';
 import Register from './views/shared/Register';
@@ -15,20 +17,30 @@ import Cart from './views/user/Cart';
 import LoanStatus from './views/user/LoanStatus';
 import LoanHistory from './views/user/LoanHistory';
 import Checkout from './views/user/Checkout';
+
+// Import komponen UI global
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
 import { Menu, X } from 'lucide-react';
 
+/**
+ * Komponen Utama Aplikasi (App)
+ * Mengatur routing, state user global, dan layout utama.
+ */
 export default function App() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [user, setUser] = useState<any>(null); // State untuk menyimpan data user yang sedang login
+  const [loading, setLoading] = useState(true); // State loading saat mengecek sesi login
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State untuk sidebar mobile di dashboard
 
+  // Mengecek status login saat aplikasi pertama kali dimuat
   useEffect(() => {
     checkUser();
   }, []);
 
+  /**
+   * Fungsi untuk mengambil data profil user dari server (session check)
+   */
   const checkUser = async () => {
     setLoading(true);
     try {
@@ -49,28 +61,34 @@ export default function App() {
     }
   };
 
+  /**
+   * Fungsi untuk menangani proses logout
+   */
   const handleLogout = async () => {
     try {
-      // Don't set global loading to true here to avoid "stuck" feeling
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (err) {
       console.error('Logout failed', err);
     } finally {
       setUser(null);
-      // Use replace to avoid back button issues and force a clean state
+      // Redirect ke halaman login dan hapus riwayat navigasi
       window.location.replace('/login');
     }
   };
 
   const location = useLocation();
 
+  // Tampilan loading saat inisialisasi aplikasi
   if (loading) return <div className="h-screen flex items-center justify-center bg-gray-50 text-gray-400">Memuat...</div>;
 
   return (
     <AnimatePresence mode="wait">
       <div key={location.pathname}>
         <Routes location={location}>
-          {/* Frontend Routes */}
+          {/* 
+            RUTE FRONTEND (Halaman User Biasa) 
+            Jika user adalah admin/petugas, mereka akan diarahkan otomatis ke dashboard.
+          */}
         <Route path="/" element={
           user && (user.role === 'admin' || user.role === 'petugas') ? (
             <Navigate to="/dashboard" />
@@ -83,6 +101,7 @@ export default function App() {
           )
         } />
         
+        {/* Rute Katalog Alat */}
         <Route path="/katalog" element={
           user && (user.role === 'admin' || user.role === 'petugas') ? (
             <Navigate to="/dashboard" />
@@ -95,6 +114,7 @@ export default function App() {
           )
         } />
 
+        {/* Rute Detail Alat */}
         <Route path="/alat/:id" element={
           user && (user.role === 'admin' || user.role === 'petugas') ? (
             <Navigate to="/dashboard" />
@@ -107,6 +127,7 @@ export default function App() {
           )
         } />
 
+        {/* Rute Keranjang Belanja */}
         <Route path="/keranjang" element={
           user && (user.role === 'admin' || user.role === 'petugas') ? (
             <Navigate to="/dashboard" />
@@ -119,6 +140,7 @@ export default function App() {
           )
         } />
 
+        {/* Rute Status Peminjaman Aktif */}
         <Route path="/status-peminjaman" element={
           user && (user.role === 'admin' || user.role === 'petugas') ? (
             <Navigate to="/dashboard" />
@@ -131,6 +153,7 @@ export default function App() {
           )
         } />
 
+        {/* Rute Riwayat Peminjaman Selesai */}
         <Route path="/riwayat-peminjaman" element={
           user && (user.role === 'admin' || user.role === 'petugas') ? (
             <Navigate to="/dashboard" />
@@ -143,6 +166,7 @@ export default function App() {
           )
         } />
 
+        {/* Rute Checkout Pesanan */}
         <Route path="/checkout" element={
           user && (user.role === 'admin' || user.role === 'petugas') ? (
             <Navigate to="/dashboard" />
@@ -155,20 +179,24 @@ export default function App() {
           )
         } />
         
+        {/* Rute Login & Register */}
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={checkUser} />} />
         <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
 
-        {/* Dashboard Routes (Glassmorphism) */}
+        {/* 
+          RUTE DASHBOARD (Admin & Petugas) 
+          Menggunakan tema Glassmorphism (transparan & blur).
+        */}
         <Route path="/dashboard/*" element={
           !user || (user.role !== 'admin' && user.role !== 'petugas') ? (
             <Navigate to="/login" />
           ) : (
             <div className="flex min-h-screen bg-[#0f172a] overflow-hidden relative">
-              {/* Background blobs for glassmorphism */}
+              {/* Efek Cahaya Latar Belakang (Blobs) */}
               <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/20 rounded-full blur-[120px]" />
               <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[120px]" />
               
-              {/* Sidebar with mobile support */}
+              {/* Sidebar Navigasi Dashboard */}
               <Sidebar 
                 user={user} 
                 onLogout={handleLogout} 
@@ -176,7 +204,7 @@ export default function App() {
                 onClose={() => setIsSidebarOpen(false)} 
               />
               
-              {/* Overlay for mobile sidebar */}
+              {/* Overlay saat sidebar mobile terbuka */}
               {isSidebarOpen && (
                 <div 
                   className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
@@ -185,7 +213,7 @@ export default function App() {
               )}
 
               <main className="flex-1 h-screen overflow-y-auto relative z-10">
-                {/* Mobile Header for Dashboard */}
+                {/* Header khusus tampilan mobile di dashboard */}
                 <div className="lg:hidden flex items-center justify-between p-4 border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-30">
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
@@ -201,6 +229,7 @@ export default function App() {
                   </button>
                 </div>
 
+                {/* Konten Utama Dashboard berdasarkan Sub-Rute */}
                 <div className="p-4 md:p-8">
                   <Routes>
                     <Route path="/" element={<Dashboard user={user} />} />

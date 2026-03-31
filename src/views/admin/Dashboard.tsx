@@ -9,32 +9,42 @@ import {
 import StatCard from '../../components/StatCard';
 import { api } from '../../core/api';
 
+/**
+ * Komponen Dashboard Admin/Petugas
+ * Menampilkan ringkasan statistik, grafik pendapatan, dan log aktivitas terbaru.
+ */
 export default function Dashboard({ user }: { user: any }) {
+  // State untuk menyimpan data statistik utama
   const [stats, setStats] = useState<any>({
     totalAlat: 0,
     totalUsers: 0,
     peminjamanAktif: 0,
     totalPendapatan: 0,
-    monthlyTarget: 100, // Default target
-    monthlyAchievement: 0,
+    monthlyTarget: 100, // Target peminjaman per bulan
+    monthlyAchievement: 0, // Persentase pencapaian target
     toolStatus: {
       available: 0,
       loaned: 0,
       maintenance: 0
     }
   });
-  const [recentLogs, setRecentLogs] = useState<any[]>([]);
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [categoryData, setCategoryData] = useState<any[]>([]);
-  const [topBorrowed, setTopBorrowed] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [recentLogs, setRecentLogs] = useState<any[]>([]); // 5 log aktivitas terbaru
+  const [chartData, setChartData] = useState<any[]>([]); // Data untuk grafik pendapatan bulanan
+  const [categoryData, setCategoryData] = useState<any[]>([]); // Data untuk grafik distribusi kategori
+  const [topBorrowed, setTopBorrowed] = useState<any[]>([]); // Data alat paling populer
+  const [loading, setLoading] = useState(true); // Status loading data
 
+  // Mengambil data dashboard saat komponen pertama kali dimuat
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
+  /**
+   * Fungsi untuk mengambil semua data yang diperlukan dashboard secara paralel
+   */
   const fetchDashboardData = async () => {
     try {
+      // Mengambil data dari berbagai API secara bersamaan untuk efisiensi
       const [alat, users, pinjam, logs, top] = await Promise.all([
         api.getAlat(),
         api.getUsers(),
@@ -43,28 +53,31 @@ export default function Dashboard({ user }: { user: any }) {
         api.getTopBorrowed()
       ]);
 
+      // Menghitung jumlah peminjaman yang sedang aktif (Disetujui atau Dipinjam)
       const aktif = pinjam.filter((p: any) => p.status === 'disetujui' || p.status === 'dipinjam').length;
+      
+      // Menghitung total pendapatan dari semua transaksi yang selesai
       const pendapatan = pinjam.reduce((acc: number, p: any) => acc + (p.total_bayar || 0), 0);
 
-      // Calculate monthly achievement
+      // Menghitung pencapaian target bulanan
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const loansThisMonth = pinjam.filter((p: any) => new Date(p.tgl_pinjam) >= firstDayOfMonth).length;
       const achievement = Math.min(100, Math.round((loansThisMonth / stats.monthlyTarget) * 100));
 
-      // Calculate tool status
+      // Menghitung status stok alat
       const totalStok = alat.reduce((acc: number, a: any) => acc + a.stok, 0);
       const currentlyLoaned = pinjam.filter((p: any) => p.status === 'dipinjam').reduce((acc: number, p: any) => acc + p.jumlah_alat, 0);
-      const available = totalStok; // stok in db is already "available" stock
+      const available = totalStok; // Stok di DB diasumsikan sebagai stok yang tersedia
       
-      // Category Distribution
+      // Mengelompokkan alat berdasarkan kategori untuk grafik Pie
       const categories: any = {};
       alat.forEach((a: any) => {
         categories[a.nama_kategori] = (categories[a.nama_kategori] || 0) + 1;
       });
       const catData = Object.keys(categories).map(name => ({ name, value: categories[name] }));
 
-      // Monthly Revenue Trend (Last 6 months)
+      // Menghitung tren pendapatan bulanan (6 bulan terakhir)
       const monthlyTrend = [];
       for (let i = 5; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -77,6 +90,7 @@ export default function Dashboard({ user }: { user: any }) {
         monthlyTrend.push({ name: monthName, revenue: monthRevenue });
       }
 
+      // Update semua state dengan data yang telah diproses
       setStats({
         totalAlat: alat.length,
         totalUsers: users.length,
@@ -87,7 +101,7 @@ export default function Dashboard({ user }: { user: any }) {
         toolStatus: {
           available: available,
           loaned: currentlyLoaned,
-          maintenance: Math.floor(alat.length * 0.05) // Mock maintenance as 5% of types
+          maintenance: Math.floor(alat.length * 0.05) // Simulasi: 5% alat dalam pemeliharaan
         }
       });
       setRecentLogs(logs.slice(0, 5));

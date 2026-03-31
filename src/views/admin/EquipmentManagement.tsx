@@ -3,13 +3,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Package, Plus, Search, Trash2, Edit3, Tag, Layers, Database, X, Image as ImageIcon, DollarSign, List } from 'lucide-react';
 import { api } from '../../core/api';
 
+/**
+ * Komponen Manajemen Alat (Admin/Petugas)
+ * Digunakan untuk menambah, mengedit, dan menghapus alat camping dari katalog.
+ */
 export default function EquipmentManagement({ user }: { user: any }) {
-  const [alat, setAlat] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingAlat, setEditingAlat] = useState<any>(null);
+  const [alat, setAlat] = useState<any[]>([]); // Daftar semua alat
+  const [categories, setCategories] = useState<any[]>([]); // Daftar semua kategori untuk dropdown
+  const [loading, setLoading] = useState(true); // Status loading data
+  const [searchTerm, setSearchTerm] = useState(''); // Filter pencarian alat
+  const [showModal, setShowModal] = useState(false); // Status modal tambah/edit
+  const [editingAlat, setEditingAlat] = useState<any>(null); // Data alat yang sedang diedit (null jika tambah baru)
+  
+  // State untuk form input
   const [formData, setFormData] = useState({
     nama_alat: '',
     kategori_id: '',
@@ -20,10 +26,14 @@ export default function EquipmentManagement({ user }: { user: any }) {
     kondisi: 'Baik'
   });
 
+  // Mengambil data saat komponen dimuat
   useEffect(() => {
     fetchData();
   }, []);
 
+  /**
+   * Fungsi untuk mengambil data alat dan kategori dari API
+   */
   const fetchData = async () => {
     try {
       const [alatData, catData] = await Promise.all([
@@ -39,6 +49,10 @@ export default function EquipmentManagement({ user }: { user: any }) {
     }
   };
 
+  /**
+   * Fungsi untuk membuka modal (Tambah atau Edit)
+   * @param item Data alat jika ingin mengedit, null jika ingin menambah baru
+   */
   const handleOpenModal = (item: any = null) => {
     if (item) {
       setEditingAlat(item);
@@ -66,6 +80,9 @@ export default function EquipmentManagement({ user }: { user: any }) {
     setShowModal(true);
   };
 
+  /**
+   * Fungsi untuk menyimpan data alat (Create atau Update)
+   */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const data = {
@@ -82,13 +99,16 @@ export default function EquipmentManagement({ user }: { user: any }) {
 
       if (res.ok) {
         setShowModal(false);
-        fetchData();
+        fetchData(); // Refresh data setelah simpan
       }
     } catch (err) {
       alert('Gagal menyimpan data');
     }
   };
 
+  /**
+   * Fungsi untuk menghapus alat berdasarkan ID
+   */
   const handleDelete = async (id: number) => {
     if (!confirm('Apakah Anda yakin ingin menghapus alat ini?')) return;
     try {
@@ -99,6 +119,7 @@ export default function EquipmentManagement({ user }: { user: any }) {
     }
   };
 
+  // Filter alat berdasarkan input pencarian
   const filteredAlat = alat.filter(a => 
     a.nama_alat.toLowerCase().includes(searchTerm.toLowerCase()) || 
     a.nama_kategori?.toLowerCase().includes(searchTerm.toLowerCase())
