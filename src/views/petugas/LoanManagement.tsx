@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ClipboardList, CheckCircle, XCircle, RefreshCcw, Printer, Search, Calendar, User as UserIcon, Package, AlertCircle, MapPin, X, FileText, Table, ArrowRight } from 'lucide-react';
+import { ClipboardList, CheckCircle, XCircle, RefreshCcw, Search, Calendar, User as UserIcon, Package, AlertCircle, MapPin, X, Printer, FileText, Table } from 'lucide-react';
 import { format } from 'date-fns';
+import { api } from '../../core/api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { api } from '../../core/api';
 
 export default function LoanManagement({ user }: { user: any }) {
   const [loans, setLoans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLoan, setSelectedLoan] = useState<any>(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
 
   useEffect(() => {
@@ -123,10 +124,23 @@ export default function LoanManagement({ user }: { user: any }) {
     switch (status) {
       case 'pending': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       case 'disetujui': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'dipinjam': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'kembali': return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      case 'dikirim': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      case 'diterima': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+      case 'kembali': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
       case 'ditolak': return 'bg-red-500/20 text-red-400 border-red-500/30';
       default: return 'bg-white/10 text-white/60 border-white/10';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pending': return 'Menunggu';
+      case 'disetujui': return 'Disetujui';
+      case 'dikirim': return 'Dikirim';
+      case 'diterima': return 'Diterima';
+      case 'kembali': return 'Success';
+      case 'ditolak': return 'Ditolak';
+      default: return status;
     }
   };
 
@@ -137,92 +151,173 @@ export default function LoanManagement({ user }: { user: any }) {
           <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Data Peminjaman</h1>
           <p className="text-white/60 text-lg">Kelola pengajuan dan pengembalian alat camping</p>
         </div>
-        <button 
-          onClick={() => setShowPrintModal(true)}
-          className="bg-white/10 backdrop-blur-md border border-white/10 text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all flex items-center space-x-3"
-        >
-          <Printer className="w-5 h-5" />
-          <span>Cetak Laporan</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          {user?.role === 'petugas' && (
+            <button 
+              onClick={() => setShowPrintModal(true)}
+              className="flex items-center space-x-3 px-8 py-4 bg-white/10 text-white rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/10 shadow-lg backdrop-blur-md group"
+            >
+              <Printer className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span>Cetak Laporan</span>
+            </button>
+          )}
+          <button 
+            onClick={fetchLoans}
+            className="p-4 bg-white/10 text-white rounded-2xl hover:bg-white/20 transition-all border border-white/10 shadow-lg backdrop-blur-md group"
+            title="Refresh Data"
+          >
+            <RefreshCcw className={`w-6 h-6 ${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
+          </button>
+        </div>
       </header>
 
-      {/* Print Modal */}
+      {/* Detail Modal */}
       <AnimatePresence>
-        {showPrintModal && (
+        {selectedLoan && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowPrintModal(false)}
+              onClick={() => setSelectedLoan(null)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-md bg-[#1e293b] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
+              className="relative w-full max-w-2xl bg-[#1e293b] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden"
             >
               <div className="p-8 border-b border-white/10 flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-white">Opsi Cetak Laporan</h2>
-                <button onClick={() => setShowPrintModal(false)} className="text-white/40 hover:text-white transition-colors">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Detail Peminjaman</h2>
+                  <p className="text-white/40 text-xs mt-1 uppercase tracking-widest font-bold">ID: #{selectedLoan.id}</p>
+                </div>
+                <button onClick={() => setSelectedLoan(null)} className="text-white/40 hover:text-white transition-colors">
                   <X className="w-6 h-6" />
                 </button>
               </div>
               
-              <div className="p-8 space-y-4">
-                <p className="text-white/60 text-sm mb-6">Pilih format laporan yang ingin Anda unduh. Laporan akan menyertakan data berdasarkan filter yang sedang aktif.</p>
-                
-                <button 
-                  onClick={exportToPDF}
-                  className="w-full flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-white font-bold">Export ke PDF</p>
-                      <p className="text-white/40 text-xs">Format dokumen portabel (.pdf)</p>
-                    </div>
+              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div className="space-y-6">
+                  <div className="aspect-video w-full bg-white/5 rounded-3xl overflow-hidden border border-white/10">
+                    {selectedLoan.gambar_url ? (
+                      <img 
+                        src={selectedLoan.gambar_url} 
+                        alt={selectedLoan.nama_alat} 
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-12 h-12 text-white/10" />
+                      </div>
+                    )}
                   </div>
-                  <ArrowRight className="w-5 h-5 text-white/20 group-hover:text-white transition-colors" />
-                </button>
+                  
+                  <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                    <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Status Saat Ini</p>
+                    <span className={`inline-block px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border ${getStatusColor(selectedLoan.status)}`}>
+                      {getStatusLabel(selectedLoan.status)}
+                    </span>
+                  </div>
 
-                <button 
-                  onClick={exportToExcel}
-                  className="w-full flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                      <Table className="w-6 h-6" />
+                  <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                    <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Alamat Pengiriman</p>
+                    <p className="text-white text-sm leading-relaxed">{selectedLoan.shipping_address || 'Ambil di Toko'}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Peminjam</p>
+                      <p className="text-white font-bold">{selectedLoan.peminjam}</p>
                     </div>
-                    <div className="text-left">
-                      <p className="text-white font-bold">Export ke Excel</p>
-                      <p className="text-white/40 text-xs">Format spreadsheet (.xlsx)</p>
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Nama Alat</p>
+                      <p className="text-white font-bold">{selectedLoan.nama_alat}</p>
+                    </div>
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Deskripsi Alat</p>
+                      <p className="text-white/60 text-xs leading-relaxed">{selectedLoan.deskripsi || 'Tidak ada deskripsi'}</p>
                     </div>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-white/20 group-hover:text-white transition-colors" />
-                </button>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Tgl Pinjam</p>
+                      <p className="text-white text-sm font-bold">{format(new Date(selectedLoan.tgl_pinjam), 'dd MMM yyyy')}</p>
+                    </div>
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Tgl Kembali</p>
+                      <p className="text-white text-sm font-bold">{format(new Date(selectedLoan.tgl_kembali), 'dd MMM yyyy')}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Jumlah</p>
+                      <p className="text-white text-sm font-bold">{selectedLoan.jumlah_alat} Unit</p>
+                    </div>
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Lama Sewa</p>
+                      <p className="text-white text-sm font-bold">{selectedLoan.jumlah_hari || 1} Hari</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-emerald-500/10 p-6 rounded-3xl border border-emerald-500/20">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-emerald-400/60 text-[10px] font-bold uppercase tracking-widest mb-1">Total Pembayaran</p>
+                        <p className="text-2xl font-black text-emerald-400">Rp {selectedLoan.total_bayar.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest mb-1">Metode</p>
+                        <p className="text-white text-[10px] font-bold uppercase">{selectedLoan.payment_method || 'Cash'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-8 bg-white/5 border-t border-white/10">
+              <div className="p-8 bg-white/5 border-t border-white/10 flex justify-end space-x-4">
                 <button 
-                  onClick={() => setShowPrintModal(false)}
-                  className="w-full py-4 rounded-2xl font-bold text-white/60 hover:bg-white/5 transition-all"
+                  onClick={() => setSelectedLoan(null)}
+                  className="px-8 py-4 rounded-2xl font-bold text-white/60 hover:bg-white/5 transition-all"
                 >
-                  Batal
+                  Tutup
                 </button>
+                {selectedLoan.status === 'disetujui' && (
+                  <button 
+                    onClick={() => {
+                      updateStatus(selectedLoan.id, 'dikirim');
+                      setSelectedLoan(null);
+                    }}
+                    className="px-8 py-4 bg-blue-500 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20"
+                  >
+                    Kirim Alat Sekarang
+                  </button>
+                )}
+                {selectedLoan.status === 'diterima' && (
+                  <button 
+                    onClick={() => {
+                      handleReturn(selectedLoan.id);
+                      setSelectedLoan(null);
+                    }}
+                    className="px-8 py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
+                  >
+                    Proses Pengembalian
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
-      {/* Filters & Search */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3 flex flex-wrap gap-4">
-          {['all', 'pending', 'disetujui', 'dipinjam', 'kembali', 'ditolak'].map((f) => (
+          {['all', 'pending', 'disetujui', 'dikirim', 'diterima', 'kembali', 'ditolak'].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -269,7 +364,8 @@ export default function LoanManagement({ user }: { user: any }) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="hover:bg-white/5 transition-colors group"
+                    onClick={() => setSelectedLoan(loan)}
+                    className="hover:bg-white/5 transition-colors group cursor-pointer"
                   >
                     <td className="px-8 py-6">
                       <div className="flex items-center space-x-4">
@@ -319,7 +415,7 @@ export default function LoanManagement({ user }: { user: any }) {
                     </td>
                     <td className="px-8 py-6">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(loan.status)}`}>
-                        {loan.status}
+                        {getStatusLabel(loan.status)}
                       </span>
                     </td>
                     <td className="px-8 py-6">
@@ -338,14 +434,14 @@ export default function LoanManagement({ user }: { user: any }) {
                         {loan.status === 'pending' && (
                           <>
                             <button 
-                              onClick={() => updateStatus(loan.id, 'disetujui')}
+                              onClick={(e) => { e.stopPropagation(); updateStatus(loan.id, 'disetujui'); }}
                               className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl hover:bg-emerald-500 hover:text-white transition-all"
                               title="Setujui"
                             >
                               <CheckCircle className="w-5 h-5" />
                             </button>
                             <button 
-                              onClick={() => updateStatus(loan.id, 'ditolak')}
+                              onClick={(e) => { e.stopPropagation(); updateStatus(loan.id, 'ditolak'); }}
                               className="p-3 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all"
                               title="Tolak"
                             >
@@ -355,22 +451,25 @@ export default function LoanManagement({ user }: { user: any }) {
                         )}
                         {loan.status === 'disetujui' && (
                           <button 
-                            onClick={() => updateStatus(loan.id, 'dipinjam')}
+                            onClick={(e) => { e.stopPropagation(); updateStatus(loan.id, 'dikirim'); }}
                             className="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-600 transition-all"
                           >
-                            Ambil Alat
+                            Kirim Alat
                           </button>
                         )}
-                        {loan.status === 'dipinjam' && (
+                        {loan.status === 'diterima' && (
                           <button 
-                            onClick={() => handleReturn(loan.id)}
+                            onClick={(e) => { e.stopPropagation(); handleReturn(loan.id); }}
                             className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold hover:bg-emerald-600 transition-all"
                           >
-                            Kembalikan
+                            Proses Kembali
                           </button>
                         )}
                         {loan.status === 'kembali' && (
-                          <span className="text-white/20 text-xs italic">Selesai</span>
+                          <div className="flex items-center space-x-2 bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-lg border border-emerald-500/30">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Success</span>
+                          </div>
                         )}
                       </div>
                     </td>
@@ -387,6 +486,83 @@ export default function LoanManagement({ user }: { user: any }) {
           </div>
         )}
       </div>
+
+      {/* Print Modal */}
+      <AnimatePresence>
+        {showPrintModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPrintModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md bg-[#1e293b] rounded-3xl border border-white/10 p-8 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center">
+                    <Printer className="text-emerald-400 w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Cetak Laporan</h3>
+                    <p className="text-sm text-white/40">Pilih format laporan</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowPrintModal(false)}
+                  className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <button
+                  onClick={exportToPDF}
+                  className="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-emerald-500/50 transition-all group"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center text-red-400 group-hover:scale-110 transition-transform">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-white">Export PDF</p>
+                      <p className="text-xs text-white/40">Format dokumen resmi</p>
+                    </div>
+                  </div>
+                  <Printer className="w-5 h-5 text-white/20 group-hover:text-emerald-400 transition-colors" />
+                </button>
+
+                <button
+                  onClick={exportToExcel}
+                  className="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-emerald-500/50 transition-all group"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                      <Table className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-white">Export Excel</p>
+                      <p className="text-xs text-white/40">Format data spreadsheet</p>
+                    </div>
+                  </div>
+                  <Printer className="w-5 h-5 text-white/20 group-hover:text-emerald-400 transition-colors" />
+                </button>
+              </div>
+
+              <p className="mt-8 text-center text-xs text-white/20">
+                Laporan akan mencakup data sesuai filter yang aktif saat ini.
+              </p>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

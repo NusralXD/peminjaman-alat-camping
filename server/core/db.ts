@@ -50,7 +50,7 @@ db.exec(`
     tgl_pinjam DATE NOT NULL,
     tgl_kembali DATE NOT NULL,
     tgl_realisasi_kembali DATE,
-    status TEXT CHECK(status IN ('pending', 'disetujui', 'ditolak', 'dipinjam', 'kembali')) DEFAULT 'pending',
+    status TEXT CHECK(status IN ('pending', 'disetujui', 'ditolak', 'dikirim', 'diterima', 'kembali')) DEFAULT 'pending',
     jumlah_alat INTEGER DEFAULT 1,
     total_bayar INTEGER DEFAULT 0,
     denda INTEGER DEFAULT 0,

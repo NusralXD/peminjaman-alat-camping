@@ -113,13 +113,6 @@ export default function Dashboard({ user }: { user: any }) {
           <p className="text-white/60 text-base md:text-lg">Selamat datang kembali, <span className="text-white font-semibold">{user.nama}</span> 👋</p>
         </div>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-          <Link 
-            to="/" 
-            className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 px-6 py-3 rounded-2xl text-white text-sm font-bold transition-all w-full md:w-auto justify-center"
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>Lihat Halaman User</span>
-          </Link>
           <div className="flex items-center space-x-4 bg-white/5 backdrop-blur-md border border-white/10 px-6 py-3 rounded-2xl w-full md:w-auto justify-center md:justify-start">
             <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
             <span className="text-white/80 text-sm font-medium">Sistem Aktif</span>

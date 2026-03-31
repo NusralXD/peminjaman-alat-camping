@@ -1,6 +1,6 @@
 import express from 'express';
-import db from './db.js';
-import { authenticateToken, authorizeRole, logActivity } from './auth.js';
+import db from './db.ts';
+import { authenticateToken, authorizeRole, logActivity } from './auth.ts';
 
 const router = express.Router();
 
@@ -56,7 +56,7 @@ router.get('/kategori', (req, res) => {
 // --- PEMINJAMAN ---
 router.get('/peminjaman', authenticateToken, (req: any, res) => {
   let query = `
-    SELECT p.*, u.nama_lengkap as peminjam, a.nama_alat, a.harga_per_hari, a.gambar_url
+    SELECT p.*, u.nama_lengkap as peminjam, a.nama_alat, a.harga_per_hari, a.gambar_url, a.deskripsi
     FROM peminjaman p
     JOIN users u ON p.user_id = u.id
     JOIN alat a ON p.alat_id = a.id
@@ -94,7 +94,7 @@ router.post('/peminjaman', authenticateToken, authorizeRole(['peminjam']), (req:
 });
 
 router.patch('/peminjaman/:id/status', authenticateToken, authorizeRole(['petugas', 'admin']), (req: any, res) => {
-  const { status } = req.body; // disetujui, ditolak, dipinjam, kembali
+  const { status } = req.body; // disetujui, ditolak, dikirim, kembali
   
   const current: any = db.prepare('SELECT status, alat_id, jumlah_alat FROM peminjaman WHERE id = ?').get(req.params.id);
   if (!current) return res.status(404).json({ message: 'Data tidak ditemukan' });
@@ -102,15 +102,26 @@ router.patch('/peminjaman/:id/status', authenticateToken, authorizeRole(['petuga
   const stmt = db.prepare('UPDATE peminjaman SET status = ?, petugas_id = ? WHERE id = ?');
   stmt.run(status, req.user.id, req.params.id);
 
-  // Stock logic: Reduce when 'dipinjam', restore when 'kembali'
-  if (status === 'dipinjam' && current.status !== 'dipinjam') {
+  // Stock logic: Reduce when 'dikirim', restore when 'kembali'
+  if (status === 'dikirim' && current.status !== 'dikirim') {
     db.prepare('UPDATE alat SET stok = stok - ? WHERE id = ?').run(current.jumlah_alat, current.alat_id);
-  } else if (status === 'kembali' && current.status === 'dipinjam') {
+  } else if (status === 'kembali' && (current.status === 'dikirim' || current.status === 'diterima')) {
     db.prepare('UPDATE alat SET stok = stok + ? WHERE id = ?').run(current.jumlah_alat, current.alat_id);
   }
 
   logActivity(req.user.id, 'Update Status Pinjam', `Update status pinjam ID: ${req.params.id} ke ${status}`);
   res.json({ message: 'Status updated' });
+});
+
+router.patch('/peminjaman/:id/receive', authenticateToken, (req: any, res) => {
+  const p: any = db.prepare('SELECT status, user_id FROM peminjaman WHERE id = ?').get(req.params.id);
+  if (!p) return res.status(404).json({ message: 'Data tidak ditemukan' });
+  if (p.user_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
+  if (p.status !== 'dikirim') return res.status(400).json({ message: 'Alat belum dikirim' });
+
+  db.prepare('UPDATE peminjaman SET status = ? WHERE id = ?').run('diterima', req.params.id);
+  logActivity(req.user.id, 'Terima Alat', `Menerima alat ID: ${req.params.id}`);
+  res.json({ message: 'Status updated to diterima' });
 });
 
 router.post('/peminjaman/:id/kembali', authenticateToken, (req: any, res) => {
@@ -146,8 +157,8 @@ router.post('/peminjaman/:id/kembali', authenticateToken, (req: any, res) => {
   db.prepare('UPDATE peminjaman SET tgl_realisasi_kembali = ?, status = ?, total_bayar = ?, denda = ? WHERE id = ?')
     .run(tgl_realisasi_kembali, 'kembali', total, denda, req.params.id);
 
-  // Restore stock ONLY if it was reduced (status was 'dipinjam')
-  if (p.status === 'dipinjam') {
+  // Restore stock ONLY if it was reduced (status was 'dikirim' or 'diterima')
+  if (p.status === 'dikirim' || p.status === 'diterima') {
     db.prepare('UPDATE alat SET stok = stok + ? WHERE id = ?').run(p.jumlah_alat, p.alat_id);
   }
 

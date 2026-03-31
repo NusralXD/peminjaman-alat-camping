@@ -4,8 +4,8 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import authRoutes from './server/core/auth.js';
-import apiRoutes from './server/core/api.js';
+import authRoutes from './server/core/auth.ts';
+import apiRoutes from './server/core/api.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

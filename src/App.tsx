@@ -72,59 +72,87 @@ export default function App() {
         <Routes location={location}>
           {/* Frontend Routes */}
         <Route path="/" element={
-          <div className="min-h-screen bg-white">
-            <Header user={user} onLogout={handleLogout} />
-            <Home user={user} />
-            <Footer />
-          </div>
+          user && (user.role === 'admin' || user.role === 'petugas') ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <div className="min-h-screen bg-white">
+              <Header user={user} onLogout={handleLogout} />
+              <Home user={user} />
+              <Footer />
+            </div>
+          )
         } />
         
         <Route path="/katalog" element={
-          <div className="min-h-screen bg-white">
-            <Header user={user} onLogout={handleLogout} />
-            <Catalog user={user} />
-            <Footer />
-          </div>
+          user && (user.role === 'admin' || user.role === 'petugas') ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <div className="min-h-screen bg-white">
+              <Header user={user} onLogout={handleLogout} />
+              <Catalog user={user} />
+              <Footer />
+            </div>
+          )
         } />
 
         <Route path="/alat/:id" element={
-          <div className="min-h-screen bg-white">
-            <Header user={user} onLogout={handleLogout} />
-            <DetailAlat user={user} />
-            <Footer />
-          </div>
+          user && (user.role === 'admin' || user.role === 'petugas') ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <div className="min-h-screen bg-white">
+              <Header user={user} onLogout={handleLogout} />
+              <DetailAlat user={user} />
+              <Footer />
+            </div>
+          )
         } />
 
         <Route path="/keranjang" element={
-          <div className="min-h-screen bg-white">
-            <Header user={user} onLogout={handleLogout} />
-            <Cart user={user} />
-            <Footer />
-          </div>
+          user && (user.role === 'admin' || user.role === 'petugas') ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <div className="min-h-screen bg-white">
+              <Header user={user} onLogout={handleLogout} />
+              <Cart user={user} />
+              <Footer />
+            </div>
+          )
         } />
 
         <Route path="/status-peminjaman" element={
-          <div className="min-h-screen bg-white">
-            <Header user={user} onLogout={handleLogout} />
-            <LoanStatus user={user} />
-            <Footer />
-          </div>
+          user && (user.role === 'admin' || user.role === 'petugas') ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <div className="min-h-screen bg-white">
+              <Header user={user} onLogout={handleLogout} />
+              <LoanStatus user={user} />
+              <Footer />
+            </div>
+          )
         } />
 
         <Route path="/riwayat-peminjaman" element={
-          <div className="min-h-screen bg-white">
-            <Header user={user} onLogout={handleLogout} />
-            <LoanHistory user={user} />
-            <Footer />
-          </div>
+          user && (user.role === 'admin' || user.role === 'petugas') ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <div className="min-h-screen bg-white">
+              <Header user={user} onLogout={handleLogout} />
+              <LoanHistory user={user} />
+              <Footer />
+            </div>
+          )
         } />
 
         <Route path="/checkout" element={
-          <div className="min-h-screen bg-white">
-            <Header user={user} onLogout={handleLogout} />
-            <Checkout user={user} />
-            <Footer />
-          </div>
+          user && (user.role === 'admin' || user.role === 'petugas') ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <div className="min-h-screen bg-white">
+              <Header user={user} onLogout={handleLogout} />
+              <Checkout user={user} />
+              <Footer />
+            </div>
+          )
         } />
         
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={checkUser} />} />
