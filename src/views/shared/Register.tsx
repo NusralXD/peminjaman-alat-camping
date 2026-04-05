@@ -16,13 +16,10 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    username: '',
+    nama_lengkap: '',
     phone: '',
     email: '',
-    address: '',
-    postalCode: '',
-    state: '',
     password: '',
     confirmPassword: ''
   });
@@ -66,7 +63,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 py-12">
-      <div className="max-w-2xl w-full">
+      <div className="max-w-xl w-full">
         <div className="text-center mb-10">
           <Link to="/" className="inline-flex items-center space-x-2 mb-6">
             <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20">
@@ -86,57 +83,41 @@ export default function Register() {
           className="bg-white p-8 md:p-12 rounded-[40px] shadow-xl shadow-gray-200/50 border border-gray-100"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 ml-1">Nama Depan</label>
-                <div className="relative group">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
-                  <input 
-                    type="text" 
-                    name="firstName"
-                    required
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                    placeholder="John"
-                  />
-                </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-gray-700 ml-1">Nama User</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+                <input 
+                  type="text" 
+                  name="username"
+                  required
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                  placeholder="username"
+                />
               </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 ml-1">Nama Belakang</label>
-                <div className="relative group">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
-                  <input 
-                    type="text" 
-                    name="lastName"
-                    required
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                    placeholder="Doe"
-                  />
-                </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-gray-700 ml-1">Nama Lengkap</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+                <input 
+                  type="text" 
+                  name="nama_lengkap"
+                  required
+                  value={formData.nama_lengkap}
+                  onChange={handleChange}
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                  placeholder="Nama Lengkap"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 ml-1">Email Address</label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
-                  <input 
-                    type="email" 
-                    name="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                    placeholder="john@example.com"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 ml-1">Phone No</label>
+                <label className="block text-sm font-bold text-gray-700 ml-1">No User (Phone)</label>
                 <div className="relative group">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
                   <input 
@@ -150,52 +131,18 @@ export default function Register() {
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-bold text-gray-700 ml-1">Delivery Address</label>
-              <div className="relative group">
-                <MapPin className="absolute left-4 top-4 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
-                <textarea 
-                  name="address"
-                  required
-                  rows={2}
-                  value={formData.address}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium resize-none"
-                  placeholder="Alamat lengkap pengiriman..."
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 ml-1">Postal Code</label>
+                <label className="block text-sm font-bold text-gray-700 ml-1">Email Address</label>
                 <div className="relative group">
-                  <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
                   <input 
-                    type="text" 
-                    name="postalCode"
+                    type="email" 
+                    name="email"
                     required
-                    value={formData.postalCode}
+                    value={formData.email}
                     onChange={handleChange}
                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                    placeholder="12345"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 ml-1">State / Province</label>
-                <div className="relative group">
-                  <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
-                  <input 
-                    type="text" 
-                    name="state"
-                    required
-                    value={formData.state}
-                    onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                    placeholder="Jawa Barat"
+                    placeholder="john@example.com"
                   />
                 </div>
               </div>
@@ -225,7 +172,7 @@ export default function Register() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-700 ml-1">Konfirmasi Password</label>
+                <label className="block text-sm font-bold text-gray-700 ml-1">Verif Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
                   <input 

@@ -5,6 +5,8 @@ import {
   ClipboardList, 
   History, 
   LogOut,
+  Tag,
+  FileCheck,
   ChevronRight,
   X
 } from 'lucide-react';
@@ -29,7 +31,9 @@ export default function Sidebar({ user, onLogout, isOpen, onClose }: {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['admin', 'petugas'] },
     { name: 'Manajemen User', icon: Users, path: '/dashboard/users', roles: ['admin'] },
     { name: 'Manajemen Alat', icon: Package, path: '/dashboard/alat', roles: ['admin'] },
+    { name: 'Manajemen Kategori', icon: Tag, path: '/dashboard/kategori', roles: ['admin'] },
     { name: 'Data Peminjaman', icon: ClipboardList, path: '/dashboard/peminjaman', roles: ['admin', 'petugas'] },
+    { name: 'Riwayat Transaksi', icon: ClipboardList, path: '/dashboard/pengembalian', roles: ['admin', 'petugas'] },
     { name: 'Log Aktivitas', icon: History, path: '/dashboard/logs', roles: ['admin'] },
   ];
 

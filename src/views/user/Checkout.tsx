@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, Phone, Mail, MapPin, Hash, FileText, 
   CreditCard, CheckCircle, ArrowRight, ArrowLeft,
-  ShoppingBag, Trash2, Plus, Minus, Tag
+  ShoppingBag, Trash2, Tag
 } from 'lucide-react';
 
 export default function Checkout({ user }: { user: any }) {
@@ -26,11 +26,10 @@ export default function Checkout({ user }: { user: any }) {
   const [paymentMethod, setPaymentMethod] = useState('transfer');
   const [selectedBranch, setSelectedBranch] = useState('');
 
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
-    name: user?.nama_lengkap || '',
-    phone: user?.phone || '',
-    email: user?.email || '',
     address: user?.address || '',
     postalCode: user?.postal_code || '',
     state: user?.state || '',
@@ -106,7 +105,7 @@ export default function Checkout({ user }: { user: any }) {
 
   const handleProceed = async () => {
     if (step === 1) {
-      if (!formData.name || !formData.phone || !formData.address) {
+      if (!formData.address || !formData.postalCode || !formData.state) {
         alert('Mohon lengkapi informasi pengiriman');
         return;
       }
@@ -116,18 +115,24 @@ export default function Checkout({ user }: { user: any }) {
         alert('Mohon pilih cabang toko pengiriman');
         return;
       }
-      handleFinalCheckout();
+      setShowConfirmPopup(true);
     }
   };
 
   const handleFinalCheckout = async () => {
+    setShowConfirmPopup(false);
     setSubmitting(true);
     try {
       const res = await fetch('/api/keranjang/checkout', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          shipping_info: formData,
+          shipping_info: {
+            ...formData,
+            name: user?.nama_lengkap,
+            phone: user?.phone,
+            email: user?.email
+          },
           selectedIds: directItem ? null : selectedIds,
           directItem: directItem || null,
           shipping_method: shippingMethod,
@@ -249,11 +254,9 @@ export default function Checkout({ user }: { user: any }) {
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input 
                         type="text" 
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Enter Name"
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
+                        disabled
+                        value={user?.nama_lengkap}
+                        className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -263,11 +266,9 @@ export default function Checkout({ user }: { user: any }) {
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input 
                         type="text" 
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="Enter Phone"
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
+                        disabled
+                        value={user?.phone}
+                        className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -279,11 +280,9 @@ export default function Checkout({ user }: { user: any }) {
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input 
                       type="email" 
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Enter Email Address"
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
+                      disabled
+                      value={user?.email}
+                      className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -313,13 +312,13 @@ export default function Checkout({ user }: { user: any }) {
                         name="postalCode"
                         value={formData.postalCode}
                         onChange={handleInputChange}
-                        placeholder="Enter Postal Card"
+                        placeholder="Enter Postal Code"
                         className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">State</label>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">State / Provinsi</label>
                     <select 
                       name="state"
                       value={formData.state}
@@ -331,6 +330,8 @@ export default function Checkout({ user }: { user: any }) {
                       <option value="DKI Jakarta">DKI Jakarta</option>
                       <option value="Jawa Tengah">Jawa Tengah</option>
                       <option value="Jawa Timur">Jawa Timur</option>
+                      <option value="Bali">Bali</option>
+                      <option value="Banten">Banten</option>
                     </select>
                   </div>
                 </div>
@@ -618,6 +619,47 @@ export default function Checkout({ user }: { user: any }) {
           </div>
         </div>
       </motion.div>
+
+      {/* Confirmation Popup */}
+      <AnimatePresence>
+        {showConfirmPopup && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConfirmPopup(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-[40px] p-10 text-center shadow-2xl"
+            >
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShoppingBag className="w-10 h-10 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-4">Konfirmasi Sewa</h3>
+              <p className="text-gray-500 mb-8">Apakah Anda yakin ingin menyewa barang tersebut? Pastikan semua data sudah benar.</p>
+              <div className="flex flex-col space-y-3">
+                <button 
+                  onClick={handleFinalCheckout}
+                  className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20"
+                >
+                  Ya, Sewa Sekarang
+                </button>
+                <button 
+                  onClick={() => setShowConfirmPopup(false)}
+                  className="w-full py-4 bg-gray-100 text-gray-500 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-all"
+                >
+                  Batal
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Voucher Modal */}
       <AnimatePresence>

@@ -74,37 +74,29 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   const { 
+    username,
     password, 
-    firstName, 
-    lastName, 
+    nama_lengkap,
     phone, 
-    email, 
-    address, 
-    postalCode, 
-    state 
+    email
   } = req.body;
 
   try {
-    // Use email as username
-    const username = email;
-    const existingUser = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
-    if (existingUser) return res.status(400).json({ message: 'Email sudah terdaftar' });
+    const existingUser = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?').get(username, email);
+    if (existingUser) return res.status(400).json({ message: 'Username atau Email sudah terdaftar' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const nama_lengkap = `${firstName} ${lastName}`;
 
     const stmt = db.prepare(`
       INSERT INTO users (
         username, password, nama_lengkap, role, 
-        first_name, last_name, phone, email, 
-        address, postal_code, state
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        phone, email
+      ) VALUES (?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
       username, hashedPassword, nama_lengkap, 'peminjam',
-      firstName, lastName, phone, email,
-      address, postalCode, state
+      phone, email
     );
 
     logActivity(result.lastInsertRowid as number, 'Register', `User ${username} terdaftar`);

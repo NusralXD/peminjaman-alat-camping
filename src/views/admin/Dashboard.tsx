@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { Package, Users, ClipboardList, TrendingUp, History, ExternalLink, PieChart as PieChartIcon, BarChart as BarChartIcon, Star } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Package, Users, ClipboardList, TrendingUp, History, ExternalLink, PieChart as PieChartIcon, BarChart as BarChartIcon, Star, X, Download } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, AreaChart, Area, Legend 

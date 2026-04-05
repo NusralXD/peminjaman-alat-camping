@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Package, Plus, Search, Trash2, Edit3, Tag, Layers, Database, X, Image as ImageIcon, DollarSign, List } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Package, Plus, Search, Trash2, Edit3, Tag, Layers, Database, X, Image as ImageIcon, DollarSign, List, ArrowRight } from 'lucide-react';
 import { api } from '../../core/api';
 
 /**
@@ -8,6 +9,7 @@ import { api } from '../../core/api';
  * Digunakan untuk menambah, mengedit, dan menghapus alat camping dari katalog.
  */
 export default function EquipmentManagement({ user }: { user: any }) {
+  const navigate = useNavigate();
   const [alat, setAlat] = useState<any[]>([]); // Daftar semua alat
   const [categories, setCategories] = useState<any[]>([]); // Daftar semua kategori untuk dropdown
   const [loading, setLoading] = useState(true); // Status loading data
@@ -132,13 +134,23 @@ export default function EquipmentManagement({ user }: { user: any }) {
           <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Manajemen Alat</h1>
           <p className="text-white/60 text-lg">Kelola stok dan katalog perlengkapan camping</p>
         </div>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="bg-emerald-500 text-white px-8 py-4 rounded-2xl font-bold hover:bg-emerald-400 transition-all flex items-center space-x-3 shadow-lg shadow-emerald-500/20"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Tambah Alat</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => navigate('/dashboard/kategori')}
+            className="bg-white/5 text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/10 transition-all flex items-center space-x-3 border border-white/10"
+          >
+            <Tag className="w-5 h-5 text-emerald-400" />
+            <span>Manajemen Kategori</span>
+            <ArrowRight className="w-4 h-4 text-white/40" />
+          </button>
+          <button 
+            onClick={() => handleOpenModal()}
+            className="bg-emerald-500 text-white px-8 py-4 rounded-2xl font-bold hover:bg-emerald-400 transition-all flex items-center space-x-3 shadow-lg shadow-emerald-500/20"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Tambah Alat</span>
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

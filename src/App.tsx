@@ -9,7 +9,9 @@ import Register from './views/shared/Register';
 import Dashboard from './views/admin/Dashboard';
 import UserManagement from './views/admin/UserManagement';
 import EquipmentManagement from './views/admin/EquipmentManagement';
+import CategoryManagement from './views/admin/CategoryManagement';
 import LoanManagement from './views/petugas/LoanManagement';
+import ReturnManagement from './views/petugas/ReturnManagement';
 import ActivityLogs from './views/admin/ActivityLogs';
 import Catalog from './views/user/Catalog';
 import DetailAlat from './views/user/DetailAlat';
@@ -235,7 +237,9 @@ export default function App() {
                     <Route path="/" element={<Dashboard user={user} />} />
                     <Route path="/users" element={<UserManagement user={user} />} />
                     <Route path="/alat" element={<EquipmentManagement user={user} />} />
+                    <Route path="/kategori" element={<CategoryManagement user={user} />} />
                     <Route path="/peminjaman" element={<LoanManagement user={user} />} />
+                    <Route path="/pengembalian" element={<ReturnManagement user={user} />} />
                     <Route path="/logs" element={<ActivityLogs user={user} />} />
                   </Routes>
                 </div>
