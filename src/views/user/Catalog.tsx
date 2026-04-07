@@ -68,7 +68,7 @@ export default function Catalog({ user }: { user: any }) {
 
   const handlePinjam = async (alatId: number) => {
     if (!user) {
-      window.location.href = '/login';
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
     
@@ -115,7 +115,7 @@ export default function Catalog({ user }: { user: any }) {
 
   const addToCart = async (alatId: number) => {
     if (!user) {
-      navigate('/login');
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
     try {
@@ -271,7 +271,7 @@ export default function Catalog({ user }: { user: any }) {
                             <button 
                               onClick={() => {
                                 if (!user) {
-                                  navigate('/login');
+                                  navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
                                   return;
                                 }
                                 navigate('/checkout', { state: { directItem: { alat_id: item.id, jumlah_hari: 1, jumlah_alat: 1 } } });

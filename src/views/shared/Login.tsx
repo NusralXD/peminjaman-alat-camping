@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Tent, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { api } from '../../core/api';
 
+/**
+ * Komponen Login: Menangani otentikasi pengguna.
+ * Mendukung login untuk Admin, Petugas, dan Peminjam.
+ */
 export default function Login({ onLogin }: { onLogin: () => Promise<any> }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
 
+  // Fungsi untuk menangani submit form login
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -21,7 +28,10 @@ export default function Login({ onLogin }: { onLogin: () => Promise<any> }) {
 
       if (res.ok) {
         const loggedInUser = await onLogin();
-        if (loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.role === 'petugas')) {
+        // Redirect berdasarkan role atau parameter redirect setelah login berhasil
+        if (redirect) {
+          navigate(redirect);
+        } else if (loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.role === 'petugas')) {
           navigate('/dashboard');
         } else {
           navigate('/');
@@ -37,6 +47,7 @@ export default function Login({ onLogin }: { onLogin: () => Promise<any> }) {
     }
   };
 
+  // Fungsi pembantu untuk mengisi data awal (seeding) database
   const handleSeed = async () => {
     setLoading(true);
     try {
@@ -87,7 +98,16 @@ export default function Login({ onLogin }: { onLogin: () => Promise<any> }) {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-bold text-gray-700">Password</label>
+                <button 
+                  type="button"
+                  onClick={() => alert('Fitur lupa password sedang dalam pengembangan. Silakan hubungi admin untuk reset password.')}
+                  className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest hover:underline"
+                >
+                  Lupa Password?
+                </button>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input 

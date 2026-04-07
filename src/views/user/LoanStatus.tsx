@@ -287,99 +287,94 @@ export default function LoanStatus({ user }: { user: any }) {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-white w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl"
+              className="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl"
             >
-              <div className="p-10">
-                <div className="flex justify-between items-start mb-8">
+              <div className="p-8">
+                <div className="flex justify-between items-start mb-6">
                   <div>
-                    <div className={`inline-flex items-center space-x-2 px-4 py-1.5 rounded-full ${getStatusInfo(selectedLoan.status).bg} ${getStatusInfo(selectedLoan.status).color} text-[10px] font-bold uppercase tracking-widest mb-4`}>
+                    <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full ${getStatusInfo(selectedLoan.status).bg} ${getStatusInfo(selectedLoan.status).color} text-[9px] font-bold uppercase tracking-widest mb-3`}>
                       {(() => {
                         const StatusIcon = getStatusInfo(selectedLoan.status).icon;
-                        return <StatusIcon className="w-3 h-3" />;
+                        return <StatusIcon className="w-2.5 h-2.5" />;
                       })()}
                       <span>{getStatusInfo(selectedLoan.status).label}</span>
                     </div>
-                    <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter leading-none">
-                      Detail Peminjaman
+                    <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter leading-none">
+                      Detail Sewa
                     </h2>
-                    <p className="text-gray-400 font-bold text-[10px] uppercase tracking-widest mt-2">ID: #{selectedLoan.id}</p>
+                    <p className="text-gray-400 font-bold text-[9px] uppercase tracking-widest mt-1.5">ID: #{selectedLoan.id}</p>
                   </div>
                   <button 
                     onClick={() => setSelectedLoan(null)}
-                    className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
+                    className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
                   >
-                    <XCircle className="w-6 h-6" />
+                    <XCircle className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="space-y-6">
-                  {selectedLoan.gambar_url && (
-                    <div className="aspect-video w-full bg-gray-50 rounded-3xl overflow-hidden border border-gray-100">
-                      <img 
-                        src={selectedLoan.gambar_url} 
-                        alt={selectedLoan.nama_alat} 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
+                <div className="space-y-4">
+                  <div className="flex gap-4 items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    {selectedLoan.gambar_url && (
+                      <div className="w-16 h-16 bg-white rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
+                        <img 
+                          src={selectedLoan.gambar_url} 
+                          alt={selectedLoan.nama_alat} 
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Nama Alat</p>
+                      <p className="text-lg font-black text-gray-900 uppercase truncate">{selectedLoan.nama_alat}</p>
                     </div>
-                  )}
-                  <div className="bg-gray-50 p-6 rounded-3xl">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Nama Alat</p>
-                    <p className="text-xl font-black text-gray-900 uppercase">{selectedLoan.nama_alat}</p>
-                  </div>
-                  <div className="bg-gray-50 p-6 rounded-3xl">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Deskripsi Alat</p>
-                    <p className="text-sm text-gray-600 leading-relaxed">{selectedLoan.deskripsi || 'Tidak ada deskripsi'}</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-6 rounded-3xl">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Tgl Pinjam</p>
-                      <p className="text-sm font-bold text-gray-900">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Tgl Pinjam</p>
+                      <p className="text-xs font-bold text-gray-900">
                         {new Date(selectedLoan.tgl_pinjam).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
-                    <div className="bg-gray-50 p-6 rounded-3xl">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Tgl Kembali</p>
-                      <p className="text-sm font-bold text-gray-900">
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Tgl Kembali</p>
+                      <p className="text-xs font-bold text-gray-900">
                         {new Date(selectedLoan.tgl_kembali).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-6 rounded-3xl">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Jumlah Unit</p>
-                      <p className="text-sm font-bold text-gray-900">{selectedLoan.jumlah_alat} Unit</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Jumlah</p>
+                      <p className="text-xs font-bold text-gray-900">{selectedLoan.jumlah_alat} Unit</p>
                     </div>
-                    <div className="bg-gray-50 p-6 rounded-3xl">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Bayar</p>
-                      <p className="text-sm font-black text-emerald-600">Rp {selectedLoan.total_bayar?.toLocaleString()}</p>
+                    <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                      <p className="text-[9px] text-emerald-600/60 font-bold uppercase tracking-widest mb-0.5">Total Bayar</p>
+                      <p className="text-xs font-black text-emerald-600">Rp {selectedLoan.total_bayar?.toLocaleString()}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-6 rounded-3xl">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Pengiriman</p>
-                      <p className="text-sm font-bold text-gray-900 uppercase">{selectedLoan.shipping_method || '-'}</p>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-3xl">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Pembayaran</p>
-                      <p className="text-sm font-bold text-gray-900 uppercase">{selectedLoan.payment_method || '-'}</p>
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Metode</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-gray-900 uppercase">{selectedLoan.shipping_method || '-'}</span>
+                      <span className="text-[10px] font-bold text-gray-900 uppercase">{selectedLoan.payment_method || '-'}</span>
                     </div>
                   </div>
 
                   {selectedLoan.shipping_address && (
-                    <div className="bg-gray-50 p-6 rounded-3xl">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Alamat Pengiriman</p>
-                      <p className="text-xs font-medium text-gray-600 leading-relaxed">{selectedLoan.shipping_address}</p>
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Alamat</p>
+                      <p className="text-[10px] font-medium text-gray-600 line-clamp-2">{selectedLoan.shipping_address}</p>
                     </div>
                   )}
 
-                  <div className="pt-6">
+                  <div className="pt-4">
                     <button 
                       onClick={() => setSelectedLoan(null)}
-                      className="w-full bg-gray-900 text-white py-5 rounded-3xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-600 transition-all shadow-xl shadow-gray-900/10"
+                      className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all shadow-xl shadow-gray-900/10"
                     >
                       Tutup Detail
                     </button>

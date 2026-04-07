@@ -103,7 +103,7 @@ export default function App() {
             )
           } />
           
-          {/* Rute Katalog Alat */}
+          {/* Rute Katalog Alat: Menampilkan daftar semua alat camping yang tersedia */}
           <Route path="/katalog" element={
             user && (user.role === 'admin' || user.role === 'petugas') ? (
               <Navigate to="/dashboard" />
@@ -116,7 +116,7 @@ export default function App() {
             )
           } />
 
-          {/* Rute Detail Alat */}
+          {/* Rute Detail Alat: Menampilkan informasi lengkap satu alat tertentu */}
           <Route path="/alat/:id" element={
             user && (user.role === 'admin' || user.role === 'petugas') ? (
               <Navigate to="/dashboard" />
@@ -129,7 +129,7 @@ export default function App() {
             )
           } />
 
-          {/* Rute Keranjang Belanja */}
+          {/* Rute Keranjang Belanja: Daftar alat yang siap untuk disewa */}
           <Route path="/keranjang" element={
             user && (user.role === 'admin' || user.role === 'petugas') ? (
               <Navigate to="/dashboard" />
@@ -142,7 +142,7 @@ export default function App() {
             )
           } />
 
-          {/* Rute Status Peminjaman Aktif */}
+          {/* Rute Status Peminjaman Aktif: Menampilkan status pesanan yang sedang berjalan */}
           <Route path="/status-peminjaman" element={
             user && (user.role === 'admin' || user.role === 'petugas') ? (
               <Navigate to="/dashboard" />
@@ -155,7 +155,7 @@ export default function App() {
             )
           } />
 
-          {/* Rute Riwayat Peminjaman Selesai */}
+          {/* Rute Riwayat Peminjaman Selesai: Menampilkan daftar transaksi yang sudah selesai */}
           <Route path="/riwayat-peminjaman" element={
             user && (user.role === 'admin' || user.role === 'petugas') ? (
               <Navigate to="/dashboard" />
@@ -168,7 +168,7 @@ export default function App() {
             )
           } />
 
-          {/* Rute Checkout Pesanan */}
+          {/* Rute Checkout Pesanan: Proses finalisasi penyewaan alat */}
           <Route path="/checkout" element={
             user && (user.role === 'admin' || user.role === 'petugas') ? (
               <Navigate to="/dashboard" />
@@ -238,7 +238,7 @@ export default function App() {
                     <Route path="/users" element={<UserManagement user={user} />} />
                     <Route path="/alat" element={<EquipmentManagement user={user} />} />
                     <Route path="/kategori" element={<CategoryManagement user={user} />} />
-                    <Route path="/peminjaman" element={<LoanManagement user={user} />} />
+                    <Route path="/peminjaman" element={user.role === 'petugas' ? <LoanManagement user={user} /> : <Navigate to="/dashboard" />} />
                     <Route path="/pengembalian" element={<ReturnManagement user={user} />} />
                     <Route path="/logs" element={<ActivityLogs user={user} />} />
                   </Routes>

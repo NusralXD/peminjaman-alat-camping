@@ -111,10 +111,19 @@ export default function UserManagement({ user }: { user: any }) {
    * Fungsi untuk menghapus user berdasarkan ID
    */
   const handleDelete = async (id: number) => {
+    if (id === user.id) {
+      alert('Anda tidak dapat menghapus akun Anda sendiri.');
+      return;
+    }
     if (!confirm('Apakah Anda yakin ingin menghapus user ini?')) return;
     try {
       const res = await api.deleteUser(id);
-      if (res.ok) fetchUsers();
+      if (res.ok) {
+        fetchUsers();
+      } else {
+        const errorData = await res.json();
+        alert('Gagal menghapus data: ' + (errorData.message || 'Unknown error'));
+      }
     } catch (err) {
       alert('Gagal menghapus data');
     }

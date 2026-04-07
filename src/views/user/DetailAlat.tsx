@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ShoppingCart, ArrowRight, Minus, Plus, Star, ShieldCheck, Info, RefreshCcw } from 'lucide-react';
 
 export default function DetailAlat({ user }: { user: any }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [alat, setAlat] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [jumlahHari, setJumlahHari] = useState(1);
@@ -36,7 +37,7 @@ export default function DetailAlat({ user }: { user: any }) {
 
   const handleAddToCart = async () => {
     if (!user) {
-      navigate('/login');
+      navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
       return;
     }
     setSubmitting(true);
@@ -63,7 +64,7 @@ export default function DetailAlat({ user }: { user: any }) {
 
   const handleDirectLoan = async () => {
     if (!user) {
-      navigate('/login');
+      navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
       return;
     }
     // Navigate to checkout with this specific item as directItem

@@ -7,6 +7,10 @@ import {
   ShoppingBag, Trash2, Tag, X
 } from 'lucide-react';
 
+/**
+ * Komponen Checkout: Menangani proses pemesanan alat camping.
+ * Terdiri dari 3 langkah: Informasi Pengiriman, Pembayaran, dan Konfirmasi.
+ */
 export default function Checkout({ user }: { user: any }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,6 +53,7 @@ export default function Checkout({ user }: { user: any }) {
     note: ''
   });
 
+  // Mengambil data keranjang atau item langsung jika checkout dari halaman detail
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -252,6 +257,7 @@ export default function Checkout({ user }: { user: any }) {
           </div>
 
           <AnimatePresence mode="wait">
+            {/* Langkah 1: Informasi Pengiriman & Cabang Toko */}
             {step === 1 && (
               <motion.div 
                 key="step1"
@@ -260,46 +266,6 @@ export default function Checkout({ user }: { user: any }) {
                 exit={{ opacity: 0, x: 20 }}
                 className="space-y-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Name</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input 
-                        type="text" 
-                        disabled
-                        value={user?.nama_lengkap || ''}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone No</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input 
-                        type="text" 
-                        disabled
-                        value={user?.phone || ''}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input 
-                      type="email" 
-                      disabled
-                      value={user?.email || ''}
-                      className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Delivery Address</label>
                   <div className="relative">
@@ -431,6 +397,7 @@ export default function Checkout({ user }: { user: any }) {
               </motion.div>
             )}
 
+            {/* Langkah 2: Ringkasan Pesanan & Metode Pembayaran */}
             {step === 2 && (
               <motion.div 
                 key="step2"
@@ -615,6 +582,7 @@ export default function Checkout({ user }: { user: any }) {
               </motion.div>
             )}
 
+            {/* Langkah 3: Konfirmasi Pesanan Berhasil */}
             {step === 3 && (
               <motion.div 
                 key="step3"
