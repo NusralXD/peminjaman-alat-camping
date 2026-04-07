@@ -178,7 +178,7 @@ export default function LoanManagement({ user }: { user: any }) {
           <p className="text-white/60 text-lg">Kelola pengajuan dan pengembalian alat camping</p>
         </div>
         <div className="flex items-center space-x-4">
-          {user?.role === 'petugas' && (
+          {(user?.role === 'petugas' || user?.role === 'admin') && (
             <button 
               onClick={() => setShowPrintModal(true)}
               className="flex items-center space-x-3 px-8 py-4 bg-white/10 text-white rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/10 shadow-lg backdrop-blur-md group"
@@ -314,6 +314,28 @@ export default function LoanManagement({ user }: { user: any }) {
                 >
                   Tutup
                 </button>
+                {selectedLoan.status === 'pending' && (
+                  <>
+                    <button 
+                      onClick={() => {
+                        updateStatus(selectedLoan.id, 'disetujui');
+                        setSelectedLoan(null);
+                      }}
+                      className="px-8 py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
+                    >
+                      Setujui
+                    </button>
+                    <button 
+                      onClick={() => {
+                        updateStatus(selectedLoan.id, 'ditolak');
+                        setSelectedLoan(null);
+                      }}
+                      className="px-8 py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+                    >
+                      Tolak
+                    </button>
+                  </>
+                )}
                 {selectedLoan.status === 'disetujui' && (
                   <button 
                     onClick={() => {

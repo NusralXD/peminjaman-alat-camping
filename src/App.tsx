@@ -91,95 +91,95 @@ export default function App() {
             RUTE FRONTEND (Halaman User Biasa) 
             Jika user adalah admin/petugas, mereka akan diarahkan otomatis ke dashboard.
           */}
-        <Route path="/" element={
-          user && (user.role === 'admin' || user.role === 'petugas') ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <div className="min-h-screen bg-white">
-              <Header user={user} onLogout={handleLogout} />
-              <Home user={user} />
-              <Footer />
-            </div>
-          )
-        } />
-        
-        {/* Rute Katalog Alat */}
-        <Route path="/katalog" element={
-          user && (user.role === 'admin' || user.role === 'petugas') ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <div className="min-h-screen bg-white">
-              <Header user={user} onLogout={handleLogout} />
-              <Catalog user={user} />
-              <Footer />
-            </div>
-          )
-        } />
+          <Route path="/" element={
+            user && (user.role === 'admin' || user.role === 'petugas') ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+                <Header user={user} onLogout={handleLogout} />
+                <Home user={user} />
+                <Footer />
+              </div>
+            )
+          } />
+          
+          {/* Rute Katalog Alat */}
+          <Route path="/katalog" element={
+            user && (user.role === 'admin' || user.role === 'petugas') ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+                <Header user={user} onLogout={handleLogout} />
+                <Catalog user={user} />
+                <Footer />
+              </div>
+            )
+          } />
 
-        {/* Rute Detail Alat */}
-        <Route path="/alat/:id" element={
-          user && (user.role === 'admin' || user.role === 'petugas') ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <div className="min-h-screen bg-white">
-              <Header user={user} onLogout={handleLogout} />
-              <DetailAlat user={user} />
-              <Footer />
-            </div>
-          )
-        } />
+          {/* Rute Detail Alat */}
+          <Route path="/alat/:id" element={
+            user && (user.role === 'admin' || user.role === 'petugas') ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+                <Header user={user} onLogout={handleLogout} />
+                <DetailAlat user={user} />
+                <Footer />
+              </div>
+            )
+          } />
 
-        {/* Rute Keranjang Belanja */}
-        <Route path="/keranjang" element={
-          user && (user.role === 'admin' || user.role === 'petugas') ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <div className="min-h-screen bg-white">
-              <Header user={user} onLogout={handleLogout} />
-              <Cart user={user} />
-              <Footer />
-            </div>
-          )
-        } />
+          {/* Rute Keranjang Belanja */}
+          <Route path="/keranjang" element={
+            user && (user.role === 'admin' || user.role === 'petugas') ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+                <Header user={user} onLogout={handleLogout} />
+                <Cart user={user} />
+                <Footer />
+              </div>
+            )
+          } />
 
-        {/* Rute Status Peminjaman Aktif */}
-        <Route path="/status-peminjaman" element={
-          user && (user.role === 'admin' || user.role === 'petugas') ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <div className="min-h-screen bg-white">
-              <Header user={user} onLogout={handleLogout} />
-              <LoanStatus user={user} />
-              <Footer />
-            </div>
-          )
-        } />
+          {/* Rute Status Peminjaman Aktif */}
+          <Route path="/status-peminjaman" element={
+            user && (user.role === 'admin' || user.role === 'petugas') ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+                <Header user={user} onLogout={handleLogout} />
+                <LoanStatus user={user} />
+                <Footer />
+              </div>
+            )
+          } />
 
-        {/* Rute Riwayat Peminjaman Selesai */}
-        <Route path="/riwayat-peminjaman" element={
-          user && (user.role === 'admin' || user.role === 'petugas') ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <div className="min-h-screen bg-white">
-              <Header user={user} onLogout={handleLogout} />
-              <LoanHistory user={user} />
-              <Footer />
-            </div>
-          )
-        } />
+          {/* Rute Riwayat Peminjaman Selesai */}
+          <Route path="/riwayat-peminjaman" element={
+            user && (user.role === 'admin' || user.role === 'petugas') ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+                <Header user={user} onLogout={handleLogout} />
+                <LoanHistory user={user} />
+                <Footer />
+              </div>
+            )
+          } />
 
-        {/* Rute Checkout Pesanan */}
-        <Route path="/checkout" element={
-          user && (user.role === 'admin' || user.role === 'petugas') ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <div className="min-h-screen bg-white">
-              <Header user={user} onLogout={handleLogout} />
-              <Checkout user={user} />
-              <Footer />
-            </div>
-          )
-        } />
+          {/* Rute Checkout Pesanan */}
+          <Route path="/checkout" element={
+            user && (user.role === 'admin' || user.role === 'petugas') ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+                <Header user={user} onLogout={handleLogout} />
+                <Checkout user={user} />
+                <Footer />
+              </div>
+            )
+          } />
         
         {/* Rute Login & Register */}
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={checkUser} />} />

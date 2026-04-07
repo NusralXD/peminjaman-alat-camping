@@ -287,7 +287,7 @@ export default function LoanStatus({ user }: { user: any }) {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-white w-full max-w-lg rounded-[40px] overflow-hidden shadow-2xl"
+              className="relative bg-white w-full max-w-2xl rounded-[40px] overflow-hidden shadow-2xl"
             >
               <div className="p-10">
                 <div className="flex justify-between items-start mb-8">

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, Phone, Mail, MapPin, Hash, FileText, 
   CreditCard, CheckCircle, ArrowRight, ArrowLeft,
-  ShoppingBag, Trash2, Tag
+  ShoppingBag, Trash2, Tag, X
 } from 'lucide-react';
 
 export default function Checkout({ user }: { user: any }) {
@@ -25,6 +25,18 @@ export default function Checkout({ user }: { user: any }) {
   const [shippingMethod, setShippingMethod] = useState('jne');
   const [paymentMethod, setPaymentMethod] = useState('transfer');
   const [selectedBranch, setSelectedBranch] = useState('');
+  const [customBranch, setCustomBranch] = useState('');
+  const [isCustomBranch, setIsCustomBranch] = useState(false);
+
+  const branchesByProvince: Record<string, string[]> = {
+    'Jawa Barat': ['Bandung', 'Bogor', 'Depok', 'Bekasi', 'Sukabumi'],
+    'DKI Jakarta': ['Jakarta Pusat', 'Jakarta Selatan', 'Jakarta Barat', 'Jakarta Timur', 'Jakarta Utara'],
+    'Jawa Tengah': ['Semarang', 'Solo', 'Yogyakarta', 'Magelang'],
+    'Jawa Timur': ['Surabaya', 'Malang', 'Sidoarjo', 'Banyuwangi'],
+    'Bali': ['Denpasar', 'Badung', 'Ubud'],
+    'Banten': ['Tangerang', 'Serang', 'Cilegon'],
+    'Lainnya': []
+  };
 
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
@@ -33,6 +45,7 @@ export default function Checkout({ user }: { user: any }) {
     address: user?.address || '',
     postalCode: user?.postal_code || '',
     state: user?.state || '',
+    branch: '',
     note: ''
   });
 
@@ -255,7 +268,7 @@ export default function Checkout({ user }: { user: any }) {
                       <input 
                         type="text" 
                         disabled
-                        value={user?.nama_lengkap}
+                        value={user?.nama_lengkap || ''}
                         className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
                       />
                     </div>
@@ -267,7 +280,7 @@ export default function Checkout({ user }: { user: any }) {
                       <input 
                         type="text" 
                         disabled
-                        value={user?.phone}
+                        value={user?.phone || ''}
                         className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
                       />
                     </div>
@@ -281,7 +294,7 @@ export default function Checkout({ user }: { user: any }) {
                     <input 
                       type="email" 
                       disabled
-                      value={user?.email}
+                      value={user?.email || ''}
                       className="w-full pl-12 pr-4 py-4 bg-gray-100 border border-gray-100 rounded-2xl outline-none text-sm text-gray-500 cursor-not-allowed"
                     />
                   </div>
@@ -294,7 +307,7 @@ export default function Checkout({ user }: { user: any }) {
                     <input 
                       type="text" 
                       name="address"
-                      value={formData.address}
+                      value={formData.address || ''}
                       onChange={handleInputChange}
                       placeholder="Enter Delivery Address"
                       className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
@@ -310,7 +323,7 @@ export default function Checkout({ user }: { user: any }) {
                       <input 
                         type="text" 
                         name="postalCode"
-                        value={formData.postalCode}
+                        value={formData.postalCode || ''}
                         onChange={handleInputChange}
                         placeholder="Enter Postal Code"
                         className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
@@ -321,8 +334,12 @@ export default function Checkout({ user }: { user: any }) {
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">State / Provinsi</label>
                     <select 
                       name="state"
-                      value={formData.state}
-                      onChange={handleInputChange}
+                      value={formData.state || ''}
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        setFormData(prev => ({ ...prev, branch: '' }));
+                        setIsCustomBranch(false);
+                      }}
                       className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm appearance-none"
                     >
                       <option value="">Select State</option>
@@ -332,7 +349,61 @@ export default function Checkout({ user }: { user: any }) {
                       <option value="Jawa Timur">Jawa Timur</option>
                       <option value="Bali">Bali</option>
                       <option value="Banten">Banten</option>
+                      <option value="Lainnya">Lainnya</option>
                     </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cabang Toko</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    {!isCustomBranch ? (
+                      <select 
+                        name="branch"
+                        value={formData.branch || ''}
+                        onChange={(e) => {
+                          if (e.target.value === 'custom') {
+                            setIsCustomBranch(true);
+                            setFormData(prev => ({ ...prev, branch: '' }));
+                          } else {
+                            handleInputChange(e);
+                            setSelectedBranch(e.target.value);
+                          }
+                        }}
+                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm appearance-none"
+                      >
+                        <option value="">Pilih Cabang</option>
+                        {formData.state && branchesByProvince[formData.state]?.map(b => (
+                          <option key={b} value={b}>{b}</option>
+                        ))}
+                        <option value="custom">Lainnya (Ketik Sendiri)</option>
+                      </select>
+                    ) : (
+                      <div className="relative">
+                        <input 
+                          type="text"
+                          placeholder="Ketik nama cabang..."
+                          value={customBranch}
+                          onChange={(e) => {
+                            setCustomBranch(e.target.value);
+                            setSelectedBranch(e.target.value);
+                            setFormData(prev => ({ ...prev, branch: e.target.value }));
+                          }}
+                          className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
+                        />
+                        <button 
+                          onClick={() => {
+                            setIsCustomBranch(false);
+                            setCustomBranch('');
+                            setFormData(prev => ({ ...prev, branch: '' }));
+                          }}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -342,7 +413,7 @@ export default function Checkout({ user }: { user: any }) {
                     <FileText className="absolute left-4 top-4 w-4 h-4 text-gray-400" />
                     <textarea 
                       name="note"
-                      value={formData.note}
+                      value={formData.note || ''}
                       onChange={handleInputChange}
                       placeholder="Enter Note"
                       rows={4}
@@ -458,32 +529,66 @@ export default function Checkout({ user }: { user: any }) {
                   </div>
                 </div>
 
-                {/* Store Branch Selection */}
+                {/* Store Branch Confirmation */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4 mb-2">
                     <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
                       <MapPin className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 uppercase text-[10px] tracking-widest">Domisili Cabang Toko</h3>
-                      <p className="text-xs text-gray-500">Pilih cabang pengiriman terdekat</p>
+                      <h3 className="font-bold text-gray-900 uppercase text-[10px] tracking-widest">Konfirmasi Cabang Toko</h3>
+                      <p className="text-xs text-gray-500">Pastikan cabang pengiriman sudah sesuai</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {['Bandung', 'Jakarta', 'Yogyakarta', 'Bali'].map((branch) => (
-                      <button
-                        key={branch}
-                        onClick={() => setSelectedBranch(branch)}
-                        className={`py-4 rounded-2xl border-2 font-bold text-xs transition-all ${
-                          selectedBranch === branch 
-                          ? 'border-blue-600 bg-blue-50 text-blue-600' 
-                          : 'border-gray-100 text-gray-400 hover:border-gray-200'
-                        }`}
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    {!isCustomBranch ? (
+                      <select 
+                        name="branch"
+                        value={formData.branch || ''}
+                        onChange={(e) => {
+                          if (e.target.value === 'custom') {
+                            setIsCustomBranch(true);
+                            setFormData(prev => ({ ...prev, branch: '' }));
+                          } else {
+                            handleInputChange(e);
+                            setSelectedBranch(e.target.value);
+                          }
+                        }}
+                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm appearance-none"
                       >
-                        {branch}
-                      </button>
-                    ))}
+                        <option value="">Pilih Cabang</option>
+                        {formData.state && branchesByProvince[formData.state]?.map(b => (
+                          <option key={b} value={b}>{b}</option>
+                        ))}
+                        <option value="custom">Lainnya (Ketik Sendiri)</option>
+                      </select>
+                    ) : (
+                      <div className="relative">
+                        <input 
+                          type="text"
+                          placeholder="Ketik nama cabang..."
+                          value={customBranch}
+                          onChange={(e) => {
+                            setCustomBranch(e.target.value);
+                            setSelectedBranch(e.target.value);
+                            setFormData(prev => ({ ...prev, branch: e.target.value }));
+                          }}
+                          className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
+                        />
+                        <button 
+                          onClick={() => {
+                            setIsCustomBranch(false);
+                            setCustomBranch('');
+                            setFormData(prev => ({ ...prev, branch: '' }));
+                          }}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
