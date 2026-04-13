@@ -15,6 +15,10 @@ export default function UserManagement({ user }: { user: any }) {
   const [showModal, setShowModal] = useState(false); // Status modal tambah/edit
   const [editingUser, setEditingUser] = useState<any>(null); // Data user yang sedang diedit
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+  
   // State untuk form input user
   const [formData, setFormData] = useState({
     username: '',
@@ -135,6 +139,16 @@ export default function UserManagement({ user }: { user: any }) {
     u.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
@@ -175,7 +189,7 @@ export default function UserManagement({ user }: { user: any }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredUsers.map((u) => (
+              {currentItems.map((u) => (
                 <motion.tr 
                   key={u.id}
                   initial={{ opacity: 0 }}
@@ -247,6 +261,41 @@ export default function UserManagement({ user }: { user: any }) {
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-8">
+          <button 
+            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-all"
+          >
+            Prev
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button 
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                currentPage === page 
+                ? 'bg-emerald-500 text-white' 
+                : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button 
+            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-all"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Modal Add/Edit */}
       <AnimatePresence>

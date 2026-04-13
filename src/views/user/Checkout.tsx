@@ -43,6 +43,7 @@ export default function Checkout({ user }: { user: any }) {
   };
 
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+  const [useSavedAddress, setUseSavedAddress] = useState(!!user?.address);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -266,59 +267,141 @@ export default function Checkout({ user }: { user: any }) {
                 exit={{ opacity: 0, x: 20 }}
                 className="space-y-6"
               >
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Delivery Address</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input 
-                      type="text" 
-                      name="address"
-                      value={formData.address || ''}
-                      onChange={handleInputChange}
-                      placeholder="Enter Delivery Address"
-                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
-                    />
+                {user?.address && (
+                  <div className="mb-6">
+                    <div className={`p-6 rounded-[32px] border-2 transition-all ${useSavedAddress ? 'border-blue-600 bg-blue-50' : 'border-gray-100 bg-white'}`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${useSavedAddress ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                            <MapPin className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Alamat Tersimpan</p>
+                            <p className="text-sm font-bold text-gray-900">{user.nama_lengkap}</p>
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">{user.address}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{user.postal_code} {user.state}</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setUseSavedAddress(!useSavedAddress);
+                            if (!useSavedAddress) {
+                              setFormData({
+                                ...formData,
+                                address: user.address,
+                                postalCode: user.postal_code,
+                                state: user.state
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                address: '',
+                                postalCode: '',
+                                state: ''
+                              });
+                            }
+                          }}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                            useSavedAddress ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                        >
+                          {useSavedAddress ? 'Terpilih' : 'Pilih'}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {!useSavedAddress && (
+                      <button 
+                        onClick={() => setUseSavedAddress(true)}
+                        className="mt-4 text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-2 ml-2"
+                      >
+                        <span>Gunakan alamat tersimpan</span>
+                      </button>
+                    )}
                   </div>
-                </div>
+                )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Postal Code</label>
-                    <div className="relative">
-                      <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input 
-                        type="text" 
-                        name="postalCode"
-                        value={formData.postalCode || ''}
-                        onChange={handleInputChange}
-                        placeholder="Enter Postal Code"
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
-                      />
+                {!useSavedAddress && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center justify-between px-2">
+                      <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Tambah Alamat Baru</h3>
+                      {user?.address && (
+                        <button onClick={() => setUseSavedAddress(true)} className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Batal</button>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Delivery Address</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input 
+                          type="text" 
+                          name="address"
+                          value={formData.address || ''}
+                          onChange={handleInputChange}
+                          placeholder="Enter Delivery Address"
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Postal Code</label>
+                        <div className="relative">
+                          <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input 
+                            type="text" 
+                            name="postalCode"
+                            value={formData.postalCode || ''}
+                            onChange={handleInputChange}
+                            placeholder="Enter Postal Code"
+                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">State / Provinsi</label>
+                        <select 
+                          name="state"
+                          value={formData.state || ''}
+                          onChange={(e) => {
+                            handleInputChange(e);
+                            setFormData(prev => ({ ...prev, branch: '' }));
+                            setIsCustomBranch(false);
+                          }}
+                          className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm appearance-none"
+                        >
+                          <option value="">Select State</option>
+                          <option value="Jawa Barat">Jawa Barat</option>
+                          <option value="DKI Jakarta">DKI Jakarta</option>
+                          <option value="Jawa Tengah">Jawa Tengah</option>
+                          <option value="Jawa Timur">Jawa Timur</option>
+                          <option value="Bali">Bali</option>
+                          <option value="Banten">Banten</option>
+                          <option value="Lainnya">Lainnya</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">State / Provinsi</label>
-                    <select 
-                      name="state"
-                      value={formData.state || ''}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        setFormData(prev => ({ ...prev, branch: '' }));
-                        setIsCustomBranch(false);
-                      }}
-                      className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm appearance-none"
-                    >
-                      <option value="">Select State</option>
-                      <option value="Jawa Barat">Jawa Barat</option>
-                      <option value="DKI Jakarta">DKI Jakarta</option>
-                      <option value="Jawa Tengah">Jawa Tengah</option>
-                      <option value="Jawa Timur">Jawa Timur</option>
-                      <option value="Bali">Bali</option>
-                      <option value="Banten">Banten</option>
-                      <option value="Lainnya">Lainnya</option>
-                    </select>
-                  </div>
-                </div>
+                )}
+
+                {useSavedAddress && user?.address && (
+                  <button 
+                    onClick={() => {
+                      setUseSavedAddress(false);
+                      setFormData({
+                        ...formData,
+                        address: '',
+                        postalCode: '',
+                        state: ''
+                      });
+                    }}
+                    className="w-full py-4 border-2 border-dashed border-gray-200 rounded-3xl text-gray-400 text-xs font-bold uppercase tracking-widest hover:border-blue-400 hover:text-blue-500 transition-all flex items-center justify-center space-x-2"
+                  >
+                    <span>+ Tambah Alamat Lainnya</span>
+                  </button>
+                )}
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cabang Toko</label>

@@ -59,6 +59,22 @@ export default function LoanStatus({ user }: { user: any }) {
     }
   };
 
+  const handleCancel = async (id: number) => {
+    if (!confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
+    try {
+      const res = await fetch(`/api/peminjaman/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchLoans();
+        setSelectedLoan(null);
+      } else {
+        const err = await res.json();
+        alert(err.message || 'Gagal membatalkan pesanan');
+      }
+    } catch (err) {
+      console.error('Failed to cancel loan');
+    }
+  };
+
   const handleReturnSubmit = async () => {
     if (!selectedLoan) return;
     setIsSubmitting(true);
@@ -165,6 +181,17 @@ export default function LoanStatus({ user }: { user: any }) {
                             <p className="text-lg font-black text-emerald-600">Rp {loan.total_bayar?.toLocaleString() || '0'}</p>
                           </div>
                           <div className="flex space-x-2">
+                            {loan.status === 'pending' && (
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCancel(loan.id);
+                                }}
+                                className="px-4 py-2 bg-red-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+                              >
+                                Batalkan
+                              </button>
+                            )}
                             {loan.status === 'dikirim' && (
                               <button 
                                 onClick={(e) => {
@@ -368,6 +395,17 @@ export default function LoanStatus({ user }: { user: any }) {
                     <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                       <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Alamat</p>
                       <p className="text-[10px] font-medium text-gray-600 line-clamp-2">{selectedLoan.shipping_address}</p>
+                    </div>
+                  )}
+
+                  {selectedLoan.status === 'pending' && (
+                    <div className="pt-2">
+                      <button 
+                        onClick={() => handleCancel(selectedLoan.id)}
+                        className="w-full bg-red-500/10 text-red-500 py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+                      >
+                        Batalkan Pesanan
+                      </button>
                     </div>
                   )}
 

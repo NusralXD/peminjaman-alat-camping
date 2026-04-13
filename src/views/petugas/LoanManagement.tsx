@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ClipboardList, CheckCircle, XCircle, RefreshCcw, Search, Calendar, User as UserIcon, Package, AlertCircle, MapPin, X, Printer, FileText, Table } from 'lucide-react';
+import { ClipboardList, CheckCircle, XCircle, RefreshCcw, Search, Calendar, User as UserIcon, Package, AlertCircle, MapPin, X, Printer, FileText, Table, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { api } from '../../core/api';
 import jsPDF from 'jspdf';
@@ -30,7 +30,9 @@ export default function LoanManagement({ user }: { user: any }) {
   const fetchLoans = async () => {
     try {
       const data = await api.getLoans();
-      setLoans(data);
+      // Sort by ID descending to show newest first
+      const sortedData = [...data].sort((a, b) => b.id - a.id);
+      setLoans(sortedData);
     } catch (err) {
       console.error('Failed to fetch loans');
     } finally {
@@ -82,10 +84,20 @@ export default function LoanManagement({ user }: { user: any }) {
   };
 
   const filteredLoans = loans.filter(loan => {
+    // Only show non-returned loans in main section
+    if (loan.status === 'kembali') return false;
+    
     const matchesFilter = filter === 'all' || loan.status === filter;
     const matchesSearch = loan.peminjam.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          loan.nama_alat.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
+  });
+
+  const returnedLoans = loans.filter(loan => {
+    if (loan.status !== 'kembali') return false;
+    const matchesSearch = loan.peminjam.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         loan.nama_alat.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const exportToPDF = () => {
@@ -530,9 +542,84 @@ export default function LoanManagement({ user }: { user: any }) {
         {filteredLoans.length === 0 && (
           <div className="p-20 text-center">
             <ClipboardList className="w-16 h-16 text-white/10 mx-auto mb-4" />
-            <p className="text-white/40 font-medium">Tidak ada data peminjaman ditemukan</p>
+            <p className="text-white/40 font-medium">Tidak ada data peminjaman aktif ditemukan</p>
           </div>
         )}
+      </div>
+
+      {/* Data Pengembalian Section */}
+      <div className="mt-16">
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400">
+            <RefreshCcw className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Data Pengembalian</h2>
+            <p className="text-white/40 text-sm">Daftar alat yang sudah berhasil dikembalikan</p>
+          </div>
+        </div>
+
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[40px] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="px-8 py-6 text-white/40 text-xs font-bold uppercase tracking-wider">Peminjam & Alat</th>
+                  <th className="px-8 py-6 text-white/40 text-xs font-bold uppercase tracking-wider">Tanggal Kembali</th>
+                  <th className="px-8 py-6 text-white/40 text-xs font-bold uppercase tracking-wider">Status</th>
+                  <th className="px-8 py-6 text-white/40 text-xs font-bold uppercase tracking-wider">Total Bayar</th>
+                  <th className="px-8 py-6 text-white/40 text-xs font-bold uppercase tracking-wider text-right">Detail</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {returnedLoans.map((loan) => (
+                  <tr 
+                    key={loan.id}
+                    onClick={() => setSelectedLoan(loan)}
+                    className="hover:bg-white/5 transition-colors group cursor-pointer"
+                  >
+                    <td className="px-8 py-6">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400">
+                          <Package className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-white font-bold text-sm">{loan.nama_alat}</p>
+                          <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">{loan.peminjam}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <p className="text-white/80 text-sm flex items-center space-x-2">
+                        <Calendar className="w-3 h-3 text-emerald-400" />
+                        <span>{format(new Date(loan.tgl_realisasi_kembali || loan.tgl_kembali), 'dd MMM yyyy')}</span>
+                      </p>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        Success
+                      </span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <p className="text-white font-bold text-sm">Rp {loan.total_bayar.toLocaleString()}</p>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <button className="p-2 bg-white/5 text-white/40 rounded-lg hover:bg-white/10 hover:text-white transition-all">
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {returnedLoans.length === 0 && (
+            <div className="p-20 text-center">
+              <RefreshCcw className="w-16 h-16 text-white/10 mx-auto mb-4" />
+              <p className="text-white/40 font-medium">Belum ada data pengembalian</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Print Modal */}

@@ -51,7 +51,11 @@ router.put('/alat/:id', authenticateToken, authorizeRole(['admin']), (req: any, 
 });
 
 // Menghapus alat (Hanya Admin)
-router.post('/alat/:id/delete', authenticateToken, authorizeRole(['admin']), (req: any, res) => {
+router.delete('/alat/:id', authenticateToken, authorizeRole(['admin']), (req: any, res) => {
+  // Hapus data terkait terlebih dahulu
+  db.prepare('DELETE FROM keranjang WHERE alat_id=?').run(req.params.id);
+  db.prepare('DELETE FROM peminjaman WHERE alat_id=?').run(req.params.id);
+  
   db.prepare('DELETE FROM alat WHERE id=?').run(req.params.id);
   logActivity(req.user.id, 'Hapus Alat', `Hapus alat ID: ${req.params.id}`);
   res.json({ message: 'Deleted' });
@@ -403,6 +407,17 @@ router.put('/users/:id', authenticateToken, authorizeRole(['admin']), (req: any,
 });
 
 router.delete('/users/:id', authenticateToken, authorizeRole(['admin']), (req: any, res) => {
+  // Cegah hapus diri sendiri
+  if (parseInt(req.params.id) === req.user.id) {
+    return res.status(400).json({ error: 'Tidak bisa menghapus akun sendiri' });
+  }
+
+  // Hapus data terkait terlebih dahulu
+  db.prepare('DELETE FROM keranjang WHERE user_id=?').run(req.params.id);
+  db.prepare('DELETE FROM peminjaman WHERE user_id=?').run(req.params.id);
+  db.prepare('DELETE FROM user_vouchers WHERE user_id=?').run(req.params.id);
+  db.prepare('DELETE FROM log_aktivitas WHERE user_id=?').run(req.params.id);
+
   db.prepare('DELETE FROM users WHERE id=?').run(req.params.id);
   logActivity(req.user.id, 'Hapus User', `Hapus user ID: ${req.params.id}`);
   res.json({ message: 'Deleted' });
@@ -419,6 +434,26 @@ router.get('/stats/top-borrowed', authenticateToken, authorizeRole(['admin']), (
     LIMIT 5
   `).all();
   res.json(data);
+});
+
+// Menghapus data peminjaman (Batal Pesan - Hanya jika status pending)
+router.delete('/peminjaman/:id', authenticateToken, (req: any, res) => {
+  const loan = db.prepare('SELECT * FROM peminjaman WHERE id=?').get(req.params.id);
+  if (!loan) return res.status(404).json({ error: 'Not found' });
+  
+  // Hanya bisa batal jika status pending
+  if (loan.status !== 'pending') {
+    return res.status(400).json({ error: 'Hanya pesanan pending yang bisa dibatalkan' });
+  }
+
+  // Hanya pemilik atau admin yang bisa batal
+  if (loan.user_id !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
+  db.prepare('DELETE FROM peminjaman WHERE id=?').run(req.params.id);
+  logActivity(req.user.id, 'Batal Pesanan', `Membatalkan pesanan ID: ${req.params.id}`);
+  res.json({ message: 'Cancelled' });
 });
 
 // --- VOUCHERS ---

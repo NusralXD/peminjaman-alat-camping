@@ -39,7 +39,6 @@ export default function Sidebar({ user, onLogout, isOpen, onClose }: {
     { name: 'Manajemen Kategori', icon: Tag, path: '/dashboard/kategori', roles: ['admin'] },
     { name: 'Data Peminjaman', icon: ClipboardList, path: '/dashboard/peminjaman', roles: ['petugas'] },
     { name: 'Riwayat Transaksi', icon: ClipboardList, path: '/dashboard/pengembalian', roles: ['admin', 'petugas'] },
-    { name: 'Log Aktivitas', icon: History, path: '/dashboard/logs', roles: ['admin'] },
   ];
 
   // Memfilter menu berdasarkan role user yang sedang login

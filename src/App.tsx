@@ -240,7 +240,6 @@ export default function App() {
                     <Route path="/kategori" element={<CategoryManagement user={user} />} />
                     <Route path="/peminjaman" element={user.role === 'petugas' ? <LoanManagement user={user} /> : <Navigate to="/dashboard" />} />
                     <Route path="/pengembalian" element={<ReturnManagement user={user} />} />
-                    <Route path="/logs" element={<ActivityLogs user={user} />} />
                   </Routes>
                 </div>
               </main>
