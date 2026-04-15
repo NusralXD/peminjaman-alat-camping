@@ -78,7 +78,8 @@ router.post('/register', async (req, res) => {
     password, 
     nama_lengkap,
     phone, 
-    email
+    email,
+    foto_profil
   } = req.body;
 
   try {
@@ -90,13 +91,13 @@ router.post('/register', async (req, res) => {
     const stmt = db.prepare(`
       INSERT INTO users (
         username, password, nama_lengkap, role, 
-        phone, email
-      ) VALUES (?, ?, ?, ?, ?, ?)
+        phone, email, foto_profil
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
       username, hashedPassword, nama_lengkap, 'peminjam',
-      phone, email
+      phone, email, foto_profil || null
     );
 
     logActivity(result.lastInsertRowid as number, 'Register', `User ${username} terdaftar`);
@@ -120,7 +121,7 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/me', authenticateToken, (req: any, res) => {
-  const user = db.prepare('SELECT id, username, nama_lengkap, role, first_name, last_name, phone, email, address, postal_code, state FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT id, username, nama_lengkap, role, first_name, last_name, phone, email, address, postal_code, state, foto_profil FROM users WHERE id = ?').get(req.user.id);
   res.json({ user });
 });
 

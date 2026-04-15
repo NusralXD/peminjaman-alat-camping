@@ -125,8 +125,12 @@ export default function Header({ user, onLogout }: { user: any, onLogout: () => 
                 )}
                 <div className="relative group">
                   <button className="flex items-center space-x-2 cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-xs">
-                      {user.nama_lengkap?.[0] || user.username?.[0] || 'U'}
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-xs overflow-hidden">
+                      {user.foto_profil ? (
+                        <img src={user.foto_profil} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        user.nama_lengkap?.[0] || user.username?.[0] || 'U'
+                      )}
                     </div>
                   </button>
 
@@ -140,6 +144,13 @@ export default function Header({ user, onLogout }: { user: any, onLogout: () => 
                     </div>
 
                     <div className="px-2 space-y-1">
+                      <Link 
+                        to="/pengaturan-akun"
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors group/settings"
+                      >
+                        <Settings className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <span>Pengelola Akun</span>
+                      </Link>
                       <button 
                         onClick={() => setShowLogoutConfirm(true)}
                         className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors group/logout"

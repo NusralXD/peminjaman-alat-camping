@@ -19,6 +19,7 @@ import Cart from './views/user/Cart';
 import LoanStatus from './views/user/LoanStatus';
 import LoanHistory from './views/user/LoanHistory';
 import Checkout from './views/user/Checkout';
+import AccountSettings from './views/user/AccountSettings';
 
 // Import komponen UI global
 import Header from './components/Header';
@@ -180,6 +181,19 @@ export default function App() {
               </div>
             )
           } />
+
+          {/* Rute Pengaturan Akun */}
+          <Route path="/pengaturan-akun" element={
+            !user ? (
+              <Navigate to="/login" />
+            ) : (
+              <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+                <Header user={user} onLogout={handleLogout} />
+                <AccountSettings user={user} onUpdate={checkUser} />
+                <Footer />
+              </div>
+            )
+          } />
         
         {/* Rute Login & Register */}
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={checkUser} />} />
@@ -239,7 +253,8 @@ export default function App() {
                     <Route path="/alat" element={<EquipmentManagement user={user} />} />
                     <Route path="/kategori" element={<CategoryManagement user={user} />} />
                     <Route path="/peminjaman" element={user.role === 'petugas' ? <LoanManagement user={user} /> : <Navigate to="/dashboard" />} />
-                    <Route path="/pengembalian" element={<ReturnManagement user={user} />} />
+                    <Route path="/pengembalian" element={user.role === 'petugas' ? <ReturnManagement user={user} /> : <Navigate to="/dashboard" />} />
+                    <Route path="/riwayat" element={user.role === 'admin' ? <ReturnManagement user={user} /> : <Navigate to="/dashboard" />} />
                   </Routes>
                 </div>
               </main>

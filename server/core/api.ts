@@ -456,6 +456,66 @@ router.delete('/peminjaman/:id', authenticateToken, (req: any, res) => {
   res.json({ message: 'Cancelled' });
 });
 
+// --- USER PROFILE & SETTINGS ---
+router.put('/users/profile', authenticateToken, (req: any, res) => {
+  const { nama_lengkap, phone, address, postal_code, state, foto_profil } = req.body;
+  try {
+    db.prepare('UPDATE users SET nama_lengkap=?, phone=?, address=?, postal_code=?, state=?, foto_profil=? WHERE id=?')
+      .run(nama_lengkap, phone, address, postal_code, state, foto_profil || null, req.user.id);
+    logActivity(req.user.id, 'Update Profil', 'Memperbarui informasi profil');
+    res.json({ message: 'Profile updated' });
+  } catch (err) {
+    res.status(500).json({ message: 'Gagal memperbarui profil' });
+  }
+});
+
+// --- USER ADDRESSES ---
+router.get('/users/addresses', authenticateToken, (req: any, res) => {
+  const addresses = db.prepare('SELECT * FROM user_addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC').all(req.user.id);
+  res.json(addresses);
+});
+
+router.post('/users/addresses', authenticateToken, (req: any, res) => {
+  const { nama_penerima, phone, address, postal_code, state, is_default } = req.body;
+  
+  if (is_default) {
+    db.prepare('UPDATE user_addresses SET is_default = 0 WHERE user_id = ?').run(req.user.id);
+  }
+
+  const stmt = db.prepare(`
+    INSERT INTO user_addresses (user_id, nama_penerima, phone, address, postal_code, state, is_default)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  const result = stmt.run(req.user.id, nama_penerima, phone, address, postal_code, state, is_default ? 1 : 0);
+  res.json({ id: result.lastInsertRowid });
+});
+
+router.put('/users/addresses/:id/default', authenticateToken, (req: any, res) => {
+  db.prepare('UPDATE user_addresses SET is_default = 0 WHERE user_id = ?').run(req.user.id);
+  db.prepare('UPDATE user_addresses SET is_default = 1 WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
+  res.json({ message: 'Default address updated' });
+});
+
+router.delete('/users/addresses/:id', authenticateToken, (req: any, res) => {
+  db.prepare('DELETE FROM user_addresses WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
+  res.json({ message: 'Address deleted' });
+});
+
+router.put('/users/password', authenticateToken, (req: any, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const bcrypt = require('bcryptjs');
+  
+  const user: any = db.prepare('SELECT password FROM users WHERE id=?').get(req.user.id);
+  if (!bcrypt.compareSync(currentPassword, user.password)) {
+    return res.status(400).json({ message: 'Password saat ini salah' });
+  }
+
+  const hashedPassword = bcrypt.hashSync(newPassword, 10);
+  db.prepare('UPDATE users SET password=? WHERE id=?').run(hashedPassword, req.user.id);
+  logActivity(req.user.id, 'Update Password', 'Memperbarui password akun');
+  res.json({ message: 'Password updated' });
+});
+
 // --- VOUCHERS ---
 router.get('/vouchers/weekly', (req: any, res) => {
   const now = new Date().toISOString();

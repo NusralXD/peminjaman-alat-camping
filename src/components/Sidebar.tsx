@@ -37,8 +37,9 @@ export default function Sidebar({ user, onLogout, isOpen, onClose }: {
     { name: 'Manajemen User', icon: Users, path: '/dashboard/users', roles: ['admin'] },
     { name: 'Manajemen Alat', icon: Package, path: '/dashboard/alat', roles: ['admin'] },
     { name: 'Manajemen Kategori', icon: Tag, path: '/dashboard/kategori', roles: ['admin'] },
-    { name: 'Data Peminjaman', icon: ClipboardList, path: '/dashboard/peminjaman', roles: ['petugas'] },
-    { name: 'Riwayat Transaksi', icon: ClipboardList, path: '/dashboard/pengembalian', roles: ['admin', 'petugas'] },
+    { name: 'Peminjaman Aktif', icon: ClipboardList, path: '/dashboard/peminjaman', roles: ['petugas'] },
+    { name: 'Data Pengembalian', icon: History, path: '/dashboard/pengembalian', roles: ['petugas'] },
+    { name: 'Riwayat Transaksi', icon: FileCheck, path: '/dashboard/riwayat', roles: ['admin'] },
   ];
 
   // Memfilter menu berdasarkan role user yang sedang login

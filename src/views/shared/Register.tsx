@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { 
   Tent, User, Phone, Mail, MapPin, Hash, FileText, 
   Lock, ArrowRight, ArrowLeft, Eye, EyeOff, Loader2,
-  CheckCircle2, XCircle
+  CheckCircle2, XCircle, Camera
 } from 'lucide-react';
 import { api } from '../../core/api';
 
@@ -21,8 +21,20 @@ export default function Register() {
     phone: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    foto_profil: ''
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, foto_profil: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -83,6 +95,23 @@ export default function Register() {
           className="bg-white p-8 md:p-12 rounded-[40px] shadow-xl shadow-gray-200/50 border border-gray-100"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative group">
+                <div className="w-24 h-24 rounded-[30px] bg-emerald-50 flex items-center justify-center text-emerald-600 overflow-hidden border-4 border-white shadow-lg">
+                  {formData.foto_profil ? (
+                    <img src={formData.foto_profil} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-12 h-12" />
+                  )}
+                </div>
+                <label className="absolute bottom-0 right-0 w-8 h-8 bg-gray-900 text-white rounded-xl flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                  <Camera className="w-4 h-4" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                </label>
+              </div>
+              <p className="mt-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Foto Profil (Opsional)</p>
+            </div>
+
             <div className="space-y-2">
               <label className="block text-sm font-bold text-gray-700 ml-1">Nama User</label>
               <div className="relative group">

@@ -24,9 +24,13 @@ export default function ReturnManagement({ user }: { user: any }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(user.role === 'petugas' ? 'kembali' : '');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
+
+  const isPetugas = user.role === 'petugas';
+  const title = isPetugas ? 'Data Pengembalian' : 'Riwayat Transaksi';
+  const subtitle = isPetugas ? 'Daftar alat yang sudah berhasil dikembalikan' : 'Semua data peminjaman dan pengembalian alat camping';
 
   useEffect(() => {
     fetchData();
@@ -192,8 +196,8 @@ export default function ReturnManagement({ user }: { user: any }) {
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-bold text-white tracking-tight mb-2 uppercase">Riwayat Transaksi</h1>
-          <p className="text-white/60 text-lg">Semua data peminjaman dan pengembalian alat camping</p>
+          <h1 className="text-4xl font-bold text-white tracking-tight mb-2 uppercase">{title}</h1>
+          <p className="text-white/60 text-lg">{subtitle}</p>
         </div>
         <button 
           onClick={handlePrint}

@@ -15,6 +15,8 @@ export default function CategoryManagement({ user }: { user: any }) {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [formData, setFormData] = useState({ nama_kategori: '' });
@@ -24,6 +26,10 @@ export default function CategoryManagement({ user }: { user: any }) {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const fetchCategories = async () => {
     try {
@@ -87,6 +93,14 @@ export default function CategoryManagement({ user }: { user: any }) {
     c.nama_kategori.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredCategories.slice(indexOfFirstItem, indexOfLastItem);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -147,12 +161,12 @@ export default function CategoryManagement({ user }: { user: any }) {
                 <tr>
                   <td colSpan={3} className="px-8 py-20 text-center text-white/20 font-medium">Memuat data...</td>
                 </tr>
-              ) : filteredCategories.length === 0 ? (
+              ) : currentItems.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-8 py-20 text-center text-white/20 font-medium">Tidak ada kategori ditemukan</td>
                 </tr>
               ) : (
-                filteredCategories.map((category) => (
+                currentItems.map((category) => (
                   <tr key={category.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="px-8 py-6">
                       <span className="text-sm font-bold text-white/40">#{category.id}</span>
@@ -192,6 +206,41 @@ export default function CategoryManagement({ user }: { user: any }) {
           </table>
         </div>
       </div>
+
+      {/* Pagination Section */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center space-x-2 mt-8">
+          <button 
+            onClick={() => paginate(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-xs font-bold uppercase tracking-widest hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            Prev
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+            <button 
+              key={number}
+              onClick={() => paginate(number)}
+              className={`w-10 h-10 rounded-xl text-xs font-bold transition-all ${
+                currentPage === number 
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
+                  : 'bg-white/5 text-white/40 hover:bg-white/10'
+              }`}
+            >
+              {number}
+            </button>
+          ))}
+
+          <button 
+            onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-xs font-bold uppercase tracking-widest hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Modal Section */}
       <AnimatePresence>

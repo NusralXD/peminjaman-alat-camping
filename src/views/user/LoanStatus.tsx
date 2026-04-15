@@ -8,6 +8,9 @@ export default function LoanStatus({ user }: { user: any }) {
   const [loading, setLoading] = useState(true);
   const [selectedLoan, setSelectedLoan] = useState<any>(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [loanToCancel, setLoanToCancel] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState<{ show: boolean, title: string, message: string } | null>(null);
   const [returnDate, setReturnDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -53,25 +56,54 @@ export default function LoanStatus({ user }: { user: any }) {
       const res = await fetch(`/api/peminjaman/${id}/receive`, { method: 'PATCH' });
       if (res.ok) {
         fetchLoans();
+        setShowSuccessModal({
+          show: true,
+          title: 'Pesanan Diterima',
+          message: 'Terima kasih! Pesanan Anda telah ditandai sebagai sudah diterima.'
+        });
       }
     } catch (err) {
       console.error('Failed to receive loan');
+      setShowSuccessModal({
+        show: true,
+        title: 'Gagal',
+        message: 'Gagal menandai pesanan sebagai diterima.'
+      });
     }
   };
 
-  const handleCancel = async (id: number) => {
-    if (!confirm('Apakah Anda yakin ingin membatalkan pesanan ini?')) return;
+  const handleCancel = async () => {
+    if (!loanToCancel) return;
+    setIsSubmitting(true);
     try {
-      const res = await fetch(`/api/peminjaman/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/peminjaman/${loanToCancel.id}`, { method: 'DELETE' });
       if (res.ok) {
         fetchLoans();
+        setShowCancelModal(false);
+        setLoanToCancel(null);
         setSelectedLoan(null);
+        setShowSuccessModal({
+          show: true,
+          title: 'Berhasil Dibatalkan',
+          message: 'Pesanan Anda telah berhasil dibatalkan.'
+        });
       } else {
         const err = await res.json();
-        alert(err.message || 'Gagal membatalkan pesanan');
+        setShowSuccessModal({
+          show: true,
+          title: 'Gagal',
+          message: err.message || 'Gagal membatalkan pesanan'
+        });
       }
     } catch (err) {
       console.error('Failed to cancel loan');
+      setShowSuccessModal({
+        show: true,
+        title: 'Kesalahan',
+        message: 'Terjadi kesalahan koneksi saat membatalkan pesanan.'
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -86,13 +118,22 @@ export default function LoanStatus({ user }: { user: any }) {
       });
       if (res.ok) {
         const result = await res.json();
-        alert(`Pengembalian berhasil diajukan!\nTotal Bayar: Rp ${result.total.toLocaleString()}\nDenda: Rp ${result.denda.toLocaleString()}`);
         setShowReturnModal(false);
         setSelectedLoan(null);
         fetchLoans();
+        setShowSuccessModal({
+          show: true,
+          title: 'Pengembalian Berhasil',
+          message: `Pengembalian berhasil diajukan!\nTotal Bayar: Rp ${result.total.toLocaleString()}\nDenda: Rp ${result.denda.toLocaleString()}`
+        });
       }
     } catch (err) {
       console.error('Failed to return loan');
+      setShowSuccessModal({
+        show: true,
+        title: 'Gagal',
+        message: 'Terjadi kesalahan saat memproses pengembalian.'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -185,7 +226,8 @@ export default function LoanStatus({ user }: { user: any }) {
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCancel(loan.id);
+                                  setLoanToCancel(loan);
+                                  setShowCancelModal(true);
                                 }}
                                 className="px-4 py-2 bg-red-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
                               >
@@ -401,7 +443,10 @@ export default function LoanStatus({ user }: { user: any }) {
                   {selectedLoan.status === 'pending' && (
                     <div className="pt-2">
                       <button 
-                        onClick={() => handleCancel(selectedLoan.id)}
+                        onClick={() => {
+                          setLoanToCancel(selectedLoan);
+                          setShowCancelModal(true);
+                        }}
                         className="w-full bg-red-500/10 text-red-500 py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
                       >
                         Batalkan Pesanan
@@ -419,6 +464,81 @@ export default function LoanStatus({ user }: { user: any }) {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancel Confirmation Modal */}
+      <AnimatePresence>
+        {showCancelModal && loanToCancel && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowCancelModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white w-full max-w-sm rounded-[40px] p-10 text-center shadow-2xl"
+            >
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <XCircle className="w-10 h-10 text-red-600" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-4">Batalkan Pesanan?</h3>
+              <p className="text-gray-500 mb-8 text-sm">Apakah Anda yakin ingin membatalkan pesanan <span className="font-bold text-gray-900">"{loanToCancel.nama_alat}"</span>?</p>
+              <div className="flex flex-col space-y-3">
+                <button 
+                  onClick={handleCancel}
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Memproses...' : 'Ya, Batalkan'}
+                </button>
+                <button 
+                  onClick={() => setShowCancelModal(false)}
+                  className="w-full py-4 bg-gray-100 text-gray-500 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-all"
+                >
+                  Kembali
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {showSuccessModal?.show && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSuccessModal(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white w-full max-w-sm rounded-[40px] p-10 text-center shadow-2xl"
+            >
+              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-4">{showSuccessModal.title}</h3>
+              <p className="text-gray-500 mb-8 text-sm whitespace-pre-line">{showSuccessModal.message}</p>
+              <button 
+                onClick={() => setShowSuccessModal(null)}
+                className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-600 transition-all shadow-xl shadow-gray-900/20"
+              >
+                Selesai
+              </button>
             </motion.div>
           </div>
         )}

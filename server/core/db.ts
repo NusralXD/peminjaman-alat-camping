@@ -34,7 +34,21 @@ db.exec(`
     address TEXT,
     postal_code TEXT,
     state TEXT,
+    foto_profil TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS user_addresses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    nama_penerima TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    address TEXT NOT NULL,
+    postal_code TEXT NOT NULL,
+    state TEXT NOT NULL,
+    is_default BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
   );
 
   CREATE TABLE IF NOT EXISTS kategori (
@@ -199,6 +213,9 @@ if (!columnsUsers.includes('postal_code')) {
 }
 if (!columnsUsers.includes('state')) {
   db.exec("ALTER TABLE users ADD COLUMN state TEXT");
+}
+if (!columnsUsers.includes('foto_profil')) {
+  db.exec("ALTER TABLE users ADD COLUMN foto_profil TEXT");
 }
 
 const tableInfoAlat = db.prepare("PRAGMA table_info(alat)").all() as any[];
